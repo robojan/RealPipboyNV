@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B9492A7B-3E92-4F27-B260-FE373736E4D2}</ProjectGuid>
+    <RootNamespace>RealPipboy</RootNamespace>
+    <ProjectName>RealPipboy</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="DataTypes\AidItem.cpp" />
+    <ClCompile Include="DataTypes\AmmoItem.cpp" />
+    <ClCompile Include="DataTypes\ApparelItem.cpp" />
+    <ClCompile Include="Communication\CommunicationManager.cpp" />
+    <ClCompile Include="DataTypes\MiscItem.cpp" />
+    <ClCompile Include="DataTypes\Note.cpp" />
+    <ClCompile Include="DataTypes\Item.cpp" />
+    <ClCompile Include="Packets\GetFilePacket.cpp" />
+    <ClCompile Include="Packets\HelloPacket.cpp" />
+    <ClCompile Include="Packets\DataPacket.cpp" />
+    <ClCompile Include="Packets\SetGameInfoPacket.cpp" />
+    <ClCompile Include="Packets\SetInventoryPacket.cpp" />
+    <ClCompile Include="Packets\SetNotesPacket.cpp" />
+    <ClCompile Include="Packets\SetStatsItemsPacket.cpp" />
+    <ClCompile Include="Packets\SetPlayerEffectsPacket.cpp" />
+    <ClCompile Include="Packets\SetPlayerInfoPacket.cpp" />
+    <ClCompile Include="Packets\SetQuestsPacket.cpp" />
+    <ClCompile Include="Packets\SetRadioPacket.cpp" />
+    <ClCompile Include="Packets\SetFilePacket.cpp" />
+    <ClCompile Include="Packets\SetWorldInfoPacket.cpp" />
+    <ClCompile Include="DataTypes\StatisticsInfoItem.cpp" />
+    <ClCompile Include="DataTypes\PlayerEffect.cpp" />
+    <ClCompile Include="DataTypes\Quest.cpp" />
+    <ClCompile Include="RealPipboy.cpp" />
+    <ClCompile Include="Communication\Socket.cpp" />
+    <ClCompile Include="DataTypes\StatusEffect.cpp" />
+    <ClCompile Include="Communication\TCPCommunication.cpp" />
+    <ClCompile Include="Scheduler.cpp" />
+    <ClCompile Include="DataTypes\WeaponItem.cpp" />
+    <ClCompile Include="Packets\SendFileDataPacket.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DataTypes\AidItem.h" />
+    <ClInclude Include="DataTypes\AmmoItem.h" />
+    <ClInclude Include="DataTypes\ApparelItem.h" />
+    <ClInclude Include="Communication\CommunicationManager.h" />
+    <ClInclude Include="DataTypes\GeneralItems.h" />
+    <ClInclude Include="DataTypes\MiscItem.h" />
+    <ClInclude Include="DataTypes\Note.h" />
+    <ClInclude Include="DataTypes\IDataManager.h" />
+    <ClInclude Include="DataTypes\Item.h" />
+    <ClInclude Include="Packets\GetFilePacket.h" />
+    <ClInclude Include="Packets\HelloPacket.h" />
+    <ClInclude Include="Packets\DataPacket.h" />
+    <ClInclude Include="Packets\MessageTypes.h" />
+    <ClInclude Include="Packets\packets.h" />
+    <ClInclude Include="Packets\SetGameInfoPacket.h" />
+    <ClInclude Include="Packets\SetInventoryPacket.h" />
+    <ClInclude Include="Packets\SetNotesPacket.h" />
+    <ClInclude Include="Packets\SetStatsItemsPacket.h" />
+    <ClInclude Include="Packets\SetPlayerEffectsPacket.h" />
+    <ClInclude Include="Packets\SetPlayerInfoPacket.h" />
+    <ClInclude Include="Packets\SetQuestsPacket.h" />
+    <ClInclude Include="Packets\SetRadioPacket.h" />
+    <ClInclude Include="Packets\SetFilePacket.h" />
+    <ClInclude Include="Packets\SetWorldInfoPacket.h" />
+    <ClInclude Include="DataTypes\StatisticsInfoItem.h" />
+    <ClInclude Include="DataTypes\PlayerEffect.h" />
+    <ClInclude Include="DataTypes\Quest.h" />
+    <ClInclude Include="RealPipboy.h" />
+    <ClInclude Include="Scheduler.h" />
+    <ClInclude Include="Packets\SendFileDataPacket.h" />
+    <ClInclude Include="Util\Semaphore.h" />
+    <ClInclude Include="Communication\Socket.h" />
+    <ClInclude Include="DataTypes\StatusEffect.h" />
+    <ClInclude Include="Communication\TCPCommunication.h" />
+    <ClInclude Include="DataTypes\WeaponItem.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{20c6411c-596f-4b85-be4e-8bc91f59d8a6}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
