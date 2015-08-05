@@ -14,6 +14,7 @@
 #include "SetFilePacket.h"
 #include "SetWorldInfoPacket.h"
 #include "SendFileDataPacket.h"
+#include "SetMapMarkersPacket.h"
 #include "MessageTypes.h"
 
 inline DataPacket *GetDataPacketFromBuffer(const char *buffer, unsigned int size) {
@@ -32,6 +33,7 @@ inline DataPacket *GetDataPacketFromBuffer(const char *buffer, unsigned int size
 	case MessageType::SETRADIO: return new SetRadioPacket(buffer, size);
 	case MessageType::SETWORLDINFO: return new SetWorldInfoPacket(buffer, size);
 	case MessageType::SENDFILEDATA: return new SendFileDataPacket(buffer, size);
+	case MessageType::SETMAPMARKERS: return new SetMapMarkersPacket(buffer, size);
 	default: return new DataPacket(buffer, size);
 	}
 }

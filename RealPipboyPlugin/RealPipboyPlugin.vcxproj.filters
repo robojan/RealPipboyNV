@@ -4,6 +4,9 @@
     <Filter Include="nvse">
       <UniqueIdentifier>{0805b210-1ac4-4254-ae6b-ce8e399629a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="nvse\NetImmerse">
+      <UniqueIdentifier>{e135c75f-8d80-4a9b-bbb3-6d487363c734}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\nvse\nvse\GameAPI.cpp">
@@ -64,6 +67,9 @@
     <ClCompile Include="FOResourceStream.cpp" />
     <ClCompile Include="FOResourceFile.cpp" />
     <ClCompile Include="FileTransferHandler.cpp" />
+    <ClCompile Include="..\nvse\nvse\NiNodes.cpp">
+      <Filter>nvse\NetImmerse</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -124,8 +130,15 @@
     <ClInclude Include="FOResourceManager.h" />
     <ClInclude Include="FOResourceStream.h" />
     <ClInclude Include="FileTransferHandler.h" />
+    <ClInclude Include="..\nvse\nvse\NiNodes.h">
+      <Filter>nvse\NetImmerse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\nvse\nvse\NiTypes.h">
+      <Filter>nvse\NetImmerse</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
+    <None Include="RealPipboy.esp" />
   </ItemGroup>
 </Project>

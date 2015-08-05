@@ -31,6 +31,8 @@
 #include "nvse/GameExtraData.h"
 #include "nvse/GameBSExtraData.h"
 #include "nvse/GameProcess.h"
+#include "nvse/NiTypes.h"
+#include "nvse/NiNodes.h"
 
 #include "RealPipboy/DataTypes/WeaponItem.h"
 #include "RealPipboy/DataTypes/ApparelItem.h"
@@ -204,6 +206,7 @@ void DataManager::registerUpdates(Scheduler &scheduler)
 	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateInventory, 1000));
 	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateNotes, 3000));
 	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateQuests, 1200));
+	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateMapMarkers, 5000));
 	m_updateIds.push_back(scheduler.addPeriodic(test, 5000));
 }
 
@@ -922,6 +925,39 @@ void DataManager::updateQuests(void *)
 	}
 
 	CommunicationManager::getInstance().sendPacket(new SetQuestsPacket(list));
+}
+
+void DataManager::updateMapMarkers(void *)
+{
+	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	DataManager &dm = DataManager::getInstance();
+	TESObjectCELL *currentCell = player->parentCell;
+	if (currentCell == NULL || currentCell->worldSpace == NULL || 
+		currentCell->worldSpace->cell == NULL) {
+		return;
+	}
+
+	std::vector<MapMarker *> markers;
+
+	TESObjectCELL *cell = currentCell->worldSpace->cell;
+	for (tList<TESObjectREFR>::Iterator it = cell->objectList.Begin(); !it.End(); ++it) {
+		if (it->baseForm == *((TESForm **)0x11CA224)) { // MapMarker Reference
+			ExtraMapMarker *extraMarker = 
+				(ExtraMapMarker *)it->extraDataList.GetByType(kExtraData_MapMarker);
+			if (extraMarker != NULL && extraMarker->data != NULL) {
+				TESReputation *reputation = DYNAMIC_CAST(extraMarker->data->reputation, 
+					TESForm, TESReputation);
+				std::string reputationStr;
+				if (reputation != NULL) {
+				}
+				markers.push_back(new MapMarker(it->posX, it->posY, it->posZ, 
+					(enum MapMarker::Type) extraMarker->data->type,
+					extraMarker->data->fullName.name.CStr(), extraMarker->data->flags, 
+					reputationStr));
+			}
+		}
+	}
+	CommunicationManager::getInstance().sendPacket(new SetMapMarkersPacket(markers));
 }
 
 std::string DataManager::getSystemName()

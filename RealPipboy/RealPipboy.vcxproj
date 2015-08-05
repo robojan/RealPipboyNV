@@ -81,6 +81,7 @@
     <ClCompile Include="DataTypes\MiscItem.cpp" />
     <ClCompile Include="DataTypes\Note.cpp" />
     <ClCompile Include="DataTypes\Item.cpp" />
+    <ClCompile Include="DataTypes\MapMarker.cpp" />
     <ClCompile Include="Packets\GetFilePacket.cpp" />
     <ClCompile Include="Packets\HelloPacket.cpp" />
     <ClCompile Include="Packets\DataPacket.cpp" />
@@ -104,6 +105,7 @@
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="DataTypes\WeaponItem.cpp" />
     <ClCompile Include="Packets\SendFileDataPacket.cpp" />
+    <ClCompile Include="Packets\SetMapMarkersPacket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataTypes\AidItem.h" />
@@ -115,6 +117,7 @@
     <ClInclude Include="DataTypes\Note.h" />
     <ClInclude Include="DataTypes\IDataManager.h" />
     <ClInclude Include="DataTypes\Item.h" />
+    <ClInclude Include="DataTypes\MapMarker.h" />
     <ClInclude Include="Packets\GetFilePacket.h" />
     <ClInclude Include="Packets\HelloPacket.h" />
     <ClInclude Include="Packets\DataPacket.h" />
@@ -136,6 +139,7 @@
     <ClInclude Include="RealPipboy.h" />
     <ClInclude Include="Scheduler.h" />
     <ClInclude Include="Packets\SendFileDataPacket.h" />
+    <ClInclude Include="Packets\SetMapMarkersPacket.h" />
     <ClInclude Include="Util\Semaphore.h" />
     <ClInclude Include="Communication\Socket.h" />
     <ClInclude Include="DataTypes\StatusEffect.h" />

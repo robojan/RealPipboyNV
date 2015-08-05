@@ -1,0 +1,103 @@
+//--------------------------------------
+//--- 010 Editor v6.0.2 Binary Template
+//
+// File:
+// Author:
+// Revision:
+// Purpose:
+//--------------------------------------
+
+typedef struct {
+    uchar size;
+    char str[size];
+} bzstring <read=bzstringRead>;
+
+string bzstringRead(bzstring &m) {
+    return m.str;
+}
+
+typedef struct(int size) {
+    local int dataSize = size;
+    if((header.archiveFlags & (1<<8)) != 0) {
+        bzstring name;
+        dataSize = dataSize - sizeof(name);
+    }
+    uint32 originalSize;
+    uchar data[dataSize - sizeof(originalSize)];
+} CompressedFileBlock;
+
+typedef struct(int size) {
+    if((header.archiveFlags & (1<<8)) != 0) {
+        bzstring name;
+    }
+    uchar data[size];
+} UncompressedFileBlock;
+
+string FileRecordSizeRead(uint32 &size) {
+    string result;
+    if((size & (1<<30)) != 0) {
+        SPrintf(result, "%d(NotDefault)", size & 0x3FFFFFFF);
+    } else {
+        SPrintf(result, "%d", size & 0x3FFFFFFF);
+    }
+    return result;
+}
+
+typedef struct {
+    uint64 nameHash<format=hex>;
+    uint32 size<read=FileRecordSizeRead>;
+    uint32 offset<format=hex>;
+
+
+    local int64 curPos = FTell();
+    local int notDefault = (size & (1<<30)) != 0;
+
+    local int compressed = defaultCompressed ^ notDefault;
+    FSeek(offset);
+    if(compressed) {
+        CompressedFileBlock data(size & 0x3FFFFFFF);
+    } else {
+        UncompressedFileBlock data(size & 0x3FFFFFFF);
+    }
+    FSeek(curPos);
+} FileRecord;
+
+typedef struct {
+    uint64 hash<format=hex>;
+    uint32 count;
+    uint32 offset<format=hex>;
+    
+    local int64 curPos = FTell();
+
+    typedef struct {
+        bzstring name;
+        FileRecord file[count]<optimize=false>;
+    } FileRecordBlock;
+
+    FSeek(offset - header.totalFileNameLength);
+    FileRecordBlock fileRecord;
+    FSeek(curPos);
+} FolderRecord;
+
+typedef struct {
+    char fileId[4];
+    if(Strcmp(fileId, "BSA\0") != 0) {
+        Warning("Not a valid BSA file");
+        return 1;
+    }
+
+    uint32 version;
+    uint32 folderOffset;
+    uint32 archiveFlags <format=binary>;
+    uint32 folderCount;
+    uint32 fileCount;
+    uint32 totalFolderNameLength;
+    uint32 totalFileNameLength;
+    uint32 fileFlags<format=binary>;
+    
+} Header;
+Header header;
+local int defaultCompressed = (header.archiveFlags & (1<<2)) != 0;
+Printf("Default compressed: %d\n", defaultCompressed);
+FSeek(header.folderOffset);
+FolderRecord folderRecords[header.folderCount]<optimize=false>;

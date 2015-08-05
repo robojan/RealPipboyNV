@@ -222,6 +222,7 @@
     <ClCompile Include="..\nvse\nvse\GameTypes.cpp" />
     <ClCompile Include="..\nvse\nvse\GameUI.cpp" />
     <ClCompile Include="..\nvse\nvse\InventoryInfo.cpp" />
+    <ClCompile Include="..\nvse\nvse\NiNodes.cpp" />
     <ClCompile Include="..\nvse\nvse\SafeWrite.cpp" />
     <ClCompile Include="..\nvse\nvse\Utilities.cpp" />
     <ClCompile Include="dllmain.cpp">
@@ -258,6 +259,8 @@
     <ClInclude Include="..\nvse\nvse\GameTypes.h" />
     <ClInclude Include="..\nvse\nvse\GameUI.h" />
     <ClInclude Include="..\nvse\nvse\InventoryInfo.h" />
+    <ClInclude Include="..\nvse\nvse\NiNodes.h" />
+    <ClInclude Include="..\nvse\nvse\NiTypes.h" />
     <ClInclude Include="..\nvse\nvse\SafeWrite.h" />
     <ClInclude Include="..\nvse\nvse\Utilities.h" />
     <ClInclude Include="DataManager.h" />
@@ -267,6 +270,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
+    <None Include="RealPipboy.esp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">

@@ -4,6 +4,7 @@
 #include "RealPipboy/DataTypes/StatisticsInfoItem.h"
 #include "RealPipboy/DataTypes/StatusEffect.h"
 #include "RealPipboy/DataTypes/PlayerEffect.h"
+#include "RealPipboy/DataTypes/MapMarker.h"
 
 #include <string>
 #include <mutex>
@@ -40,6 +41,7 @@ private:
 	static void updateInventory(void *);
 	static void updateNotes(void *);
 	static void updateQuests(void *);
+	static void updateMapMarkers(void *);
 
 	static DataManager m_ourInstance;
 
