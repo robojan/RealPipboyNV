@@ -12,8 +12,8 @@ SetMapMarkersPacket::SetMapMarkersPacket(const char *buffer, size_t bufferSize) 
 	readPacket(buffer, bufferSize);
 }
 
-SetMapMarkersPacket::SetMapMarkersPacket(const std::vector<MapMarker *> &markers) :
-	m_markers(markers)
+SetMapMarkersPacket::SetMapMarkersPacket(const std::vector<MapMarker *> &markers, bool deleteMarkers) :
+	m_markers(markers), m_deleteMarkers(deleteMarkers)
 {
 	m_header = DataPacketHeader(getType(), getSize() - DataPacketHeader::getHeaderSize());
 	m_valid = true;
@@ -21,8 +21,10 @@ SetMapMarkersPacket::SetMapMarkersPacket(const std::vector<MapMarker *> &markers
 
 SetMapMarkersPacket::~SetMapMarkersPacket()
 {
-	for (std::vector<MapMarker *>::iterator it = m_markers.begin(); it != m_markers.end(); ++it) {
-		delete *it;
+	if (m_deleteMarkers) {
+		for (std::vector<MapMarker *>::iterator it = m_markers.begin(); it != m_markers.end(); ++it) {
+			delete *it;
+		}
 	}
 }
 
@@ -35,7 +37,7 @@ size_t SetMapMarkersPacket::getSize()
 {
 	int dataSize = 2;
 	for (std::vector<MapMarker *>::iterator it = m_markers.begin(); it != m_markers.end(); ++it) {
-		dataSize += 20 + (*it)->getName().length() + (*it)->getRepuation().length();
+		dataSize += 24 + (*it)->getName().length() + (*it)->getRepuation().length();
 	}
 
 	return DataPacketHeader::getHeaderSize() + dataSize;
@@ -53,13 +55,14 @@ void SetMapMarkersPacket::fillBuffer(char *buffer, size_t bufferSize)
 	for (std::vector<MapMarker *>::iterator it = m_markers.begin(); it != m_markers.end(); ++it) {
 		*((int16_t *)(buffer + 0)) = htons((*it)->getType());
 		*((int16_t *)(buffer + 2)) = htons((*it)->getFlags());
-		*((uint32_t *)(buffer + 4)) = htonf((*it)->getX());
-		*((uint32_t *)(buffer + 8)) = htonf((*it)->getY());
-		*((uint32_t *)(buffer + 12)) = htonf((*it)->getZ());
-		*((int16_t *)(buffer + 16)) = htons((uint16_t)(*it)->getName().length());
-		memcpy(buffer + 18, (*it)->getName().c_str(), (*it)->getName().length());
-		buffer += 18 + (*it)->getName().length();
-		bufferSize -= 18 + (*it)->getName().length();
+		*((uint32_t *)(buffer + 4)) = htonl((*it)->getID());
+		*((uint32_t *)(buffer + 8)) = htonf((*it)->getX());
+		*((uint32_t *)(buffer + 12)) = htonf((*it)->getY());
+		*((uint32_t *)(buffer + 16)) = htonf((*it)->getZ());
+		*((int16_t *)(buffer + 20)) = htons((uint16_t)(*it)->getName().length());
+		memcpy(buffer + 22, (*it)->getName().c_str(), (*it)->getName().length());
+		buffer += 22 + (*it)->getName().length();
+		bufferSize -= 22 + (*it)->getName().length();
 		*((int16_t *)(buffer + 0)) = htons((uint16_t)(*it)->getRepuation().length());
 		memcpy(buffer + 2, (*it)->getRepuation().c_str(), (*it)->getRepuation().length());
 		buffer += 2 + (*it)->getRepuation().length();
@@ -81,16 +84,17 @@ void SetMapMarkersPacket::readPacket(const char *buffer, size_t bufferSize)
 	for (int i = 0; i < numMarkers && bufferSize >= 6; i++) {
 		enum MapMarker::Type type = (enum MapMarker::Type)ntohs(*((int16_t *)(buffer + 0)));
 		uint16_t flags = ntohs(*((int16_t *)(buffer + 2)));
-		float x = ntohf(*((uint32_t *)(buffer + 4)));
-		float y = ntohf(*((uint32_t *)(buffer + 8)));
-		float z = ntohf(*((uint32_t *)(buffer + 12)));
-		int nameLen = ntohs(*((int16_t *)(buffer + 16)));
-		std::string name(buffer + 18, nameLen);
-		int reputationLen = ntohs(*((int16_t *)(buffer + 18 + nameLen)));
-		std::string reputation(buffer + 20 + nameLen, reputationLen);
-		m_markers.push_back(new MapMarker(x, y, z, type, name, flags, reputation));
-		buffer += 20 + nameLen + reputationLen;
-		bufferSize -= 20 + nameLen + reputationLen;
+		uint32_t id = ntohl(*((uint32_t *)(buffer + 4)));
+		float x = ntohf(*((uint32_t *)(buffer + 8)));
+		float y = ntohf(*((uint32_t *)(buffer + 12)));
+		float z = ntohf(*((uint32_t *)(buffer + 16)));
+		int nameLen = ntohs(*((int16_t *)(buffer + 20)));
+		std::string name(buffer + 22, nameLen);
+		int reputationLen = ntohs(*((int16_t *)(buffer + 22 + nameLen)));
+		std::string reputation(buffer + 24 + nameLen, reputationLen);
+		m_markers.push_back(new MapMarker(id, x, y, z, type, name, flags, reputation));
+		buffer += 24 + nameLen + reputationLen;
+		bufferSize -= 24 + nameLen + reputationLen;
 	}
 	m_valid = true;
 }

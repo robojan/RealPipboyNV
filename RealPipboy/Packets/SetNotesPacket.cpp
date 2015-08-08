@@ -12,8 +12,8 @@ SetNotesPacket::SetNotesPacket(const char *buffer, size_t bufferSize) :
 	readPacket(buffer, bufferSize);
 }
 
-SetNotesPacket::SetNotesPacket(const std::vector<Note *> &notes) :
-m_notes(notes)
+SetNotesPacket::SetNotesPacket(const std::vector<Note *> &notes, bool deleteNotes) :
+m_notes(notes), m_deleteNotes(deleteNotes)
 {
 	m_header = DataPacketHeader(getType(), getSize()-DataPacketHeader::getHeaderSize());
 	m_valid = true;
@@ -21,8 +21,10 @@ m_notes(notes)
 
 SetNotesPacket::~SetNotesPacket()
 {
-	for (std::vector<Note *>::iterator it = m_notes.begin(); it != m_notes.end(); ++it) {
-		delete *it;
+	if (m_deleteNotes) {
+		for (std::vector<Note *>::iterator it = m_notes.begin(); it != m_notes.end(); ++it) {
+			delete *it;
+		}
 	}
 }
 

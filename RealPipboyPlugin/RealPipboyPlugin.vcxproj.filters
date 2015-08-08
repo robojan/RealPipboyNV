@@ -70,6 +70,7 @@
     <ClCompile Include="..\nvse\nvse\NiNodes.cpp">
       <Filter>nvse\NetImmerse</Filter>
     </ClCompile>
+    <ClCompile Include="ActionHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -136,6 +137,7 @@
     <ClInclude Include="..\nvse\nvse\NiTypes.h">
       <Filter>nvse\NetImmerse</Filter>
     </ClInclude>
+    <ClInclude Include="ActionHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

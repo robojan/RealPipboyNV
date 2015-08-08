@@ -82,6 +82,7 @@
     <ClCompile Include="DataTypes\Note.cpp" />
     <ClCompile Include="DataTypes\Item.cpp" />
     <ClCompile Include="DataTypes\MapMarker.cpp" />
+    <ClCompile Include="Packets\DoActionPacket.cpp" />
     <ClCompile Include="Packets\GetFilePacket.cpp" />
     <ClCompile Include="Packets\HelloPacket.cpp" />
     <ClCompile Include="Packets\DataPacket.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="DataTypes\IDataManager.h" />
     <ClInclude Include="DataTypes\Item.h" />
     <ClInclude Include="DataTypes\MapMarker.h" />
+    <ClInclude Include="Packets\DoActionPacket.h" />
     <ClInclude Include="Packets\GetFilePacket.h" />
     <ClInclude Include="Packets\HelloPacket.h" />
     <ClInclude Include="Packets\DataPacket.h" />

@@ -31,7 +31,7 @@ class SetQuestsPacket :
 {
 public:
 	SetQuestsPacket(const char *buffer, size_t bufferSize);
-	SetQuestsPacket(const std::vector<Quest *> &list);
+	SetQuestsPacket(const std::vector<Quest *> &list, bool deleteQuests);
 	virtual ~SetQuestsPacket();
 
 	virtual MessageType getType();
@@ -43,5 +43,6 @@ private:
 	void readPacket(const char *buffer, size_t bufferSize);
 
 	std::vector<Quest *> m_quests;
+	bool m_deleteQuests;
 };
 

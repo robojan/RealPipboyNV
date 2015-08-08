@@ -17,11 +17,12 @@
 // Each marker:
 // 7		2		int16		Marker type
 // 9		2		int16		Marker flags
-// 11		4		float		posX
-// 15		4		float		posY
-// 19		4		float		posZ
-// 23		2		int16		Length of name
-// 25		n		char[]		name
+// 11		4		uint32		id
+// 15		4		float		posX
+// 19		4		float		posY
+// 23		4		float		posZ
+// 27		2		int16		Length of name
+// 29		n		char[]		name
 // ..		2		int16		reputation length
 // ..		n		char[]		reputation
 
@@ -30,7 +31,7 @@ class SetMapMarkersPacket :
 {
 public:
 	SetMapMarkersPacket(const char *buffer, size_t bufferSize);
-	SetMapMarkersPacket(const std::vector<MapMarker *> &markers);
+	SetMapMarkersPacket(const std::vector<MapMarker *> &markers, bool deleteMarkers);
 	virtual ~SetMapMarkersPacket();
 
 	virtual MessageType getType();
@@ -42,5 +43,6 @@ private:
 	void readPacket(const char *buffer, size_t bufferSize);
 
 	std::vector<MapMarker *> m_markers;
+	bool m_deleteMarkers;
 };
 

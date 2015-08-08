@@ -12,8 +12,8 @@ SetInventoryPacket::SetInventoryPacket(const char *buffer, size_t bufferSize) :
 	readPacket(buffer, bufferSize);
 }
 
-SetInventoryPacket::SetInventoryPacket(const std::vector<Item *> items) :
-	m_items(items)
+SetInventoryPacket::SetInventoryPacket(const std::vector<Item *> items, bool deleteItems) :
+	m_items(items), m_deleteItems(deleteItems)
 {
 	m_header = DataPacketHeader(getType(), getSize()-DataPacketHeader::getHeaderSize());
 	m_valid = true;
@@ -21,8 +21,10 @@ SetInventoryPacket::SetInventoryPacket(const std::vector<Item *> items) :
 
 SetInventoryPacket::~SetInventoryPacket()
 {
-	for (std::vector<Item *>::iterator it = m_items.begin(); it != m_items.end(); ++it) {
-		delete *it;
+	if (m_deleteItems) {
+		for (std::vector<Item *>::iterator it = m_items.begin(); it != m_items.end(); ++it) {
+			delete *it;
+		}
 	}
 	m_items.clear();
 }

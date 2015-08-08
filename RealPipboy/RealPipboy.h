@@ -18,6 +18,7 @@ public:
 	void makeConnectable(bool connectable);
 	void setInGame(bool inGame);
 	
+	IDataManager *getDataManager() const;
 private:
 	void enableDataTransfer(bool enable);
 	static void sendKeepAlive(void *user);

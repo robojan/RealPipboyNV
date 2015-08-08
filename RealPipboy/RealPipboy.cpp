@@ -66,6 +66,11 @@ void RealPipboy::setInGame(bool inGame)
 	enableDataTransfer(m_inGame && comm.isClientConnected());
 }
 
+IDataManager * RealPipboy::getDataManager() const
+{
+	return m_dataManager;
+}
+
 void RealPipboy::enableDataTransfer(bool enable)
 {
 	if (enable == m_transferringData) {

@@ -140,25 +140,14 @@ const char *SKILL_BADGES [] = {
 
 const int NUM_GENERAL_STATISTICS = 43;
 
+bool (__cdecl *getPCMiscStat)(TESObjectREFR *ref, int id, int unk0, double *retVal) = 
+	(bool(__cdecl *)(TESObjectREFR *, int , int, double *))0x005A3310;
+
 DataManager::DataManager() :
-m_variable(0), m_hardcore(false)
+	m_hardcore(false), m_numStimpacks(0), 
+	m_numDrBag(0), m_numRadaway(0), m_numRadX(0)
 {
 	m_miscStatisticsValues.resize(NUM_GENERAL_STATISTICS, 0);
-	/*
-	m_radEffects.push_back(StatusEffect("STR", -1));
-	m_radEffects.push_back(StatusEffect("END", -3));
-	m_radEffects.push_back(StatusEffect("AGL", -2));
-	m_h2oEffects.push_back(StatusEffect("STR", -3));
-	m_h2oEffects.push_back(StatusEffect("END", -1));
-	m_fodEffects.push_back(StatusEffect("STR", +5));
-	m_slpEffects.push_back(StatusEffect("STR", -3));
-	m_slpEffects.push_back(StatusEffect("END", -1));
-	m_slpEffects.push_back(StatusEffect("STR", +5));
-	m_playerEffects.push_back(PlayerEffect("Deadly Rad Poison.", "STR -1, END -3, AGL -2, RAD + 4"));
-	m_playerEffects.push_back(PlayerEffect("Minor dehydration", "STR -3, END -1"));
-	m_playerEffects.push_back(PlayerEffect("Well fed", "STR +5"));
-	m_playerEffects.push_back(PlayerEffect("Sleep deprivation", "STR -3, END -1, STR +5"));
-	*/
 }
 
 std::string DataManager::getModifierExtra(float val)
@@ -224,55 +213,54 @@ void DataManager::update()
 
 void DataManager::updateGameInfo(void *)
 {
-	DataManager &dm = DataManager::getInstance();	
+	DataManager &dm = DataManager::getInstance();
 	CommunicationManager::getInstance().sendPacket(new SetGameInfoPacket(0, dm.m_hardcore));
 }
 
 void DataManager::updatePlayerInfo(void *)
 {
-	DataManager &i = DataManager::getInstance();
-	i.m_variable += 0.2f * 1.0f/5.0f;
-	if (i.m_variable > 1.0f) {
-		i.m_variable -= 1.0f;
-	}
-	float v = i.m_variable;
-
+	DataManager &dm = DataManager::getInstance();
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	if (player == NULL) {
+		return;
+	}
 	TESFullName *fullName = player->GetFullName();
-	UInt16 level = player->avOwner.GetLevel();
-	int16_t hp = (int16_t)player->avOwner.GetActorValueI(eActorVal_Health);
-	int16_t maxHP = (int16_t) player->avOwner.GetPermanentActorValueI(eActorVal_Health);
-	int16_t ap = (int16_t) player->avOwner.GetActorValueI(eActorVal_ActionPoints);
-	int16_t maxAP = (int16_t) player->avOwner.GetPermanentActorValueI(eActorVal_ActionPoints);
-	int32_t xp = (int32_t) player->avOwner.GetActorValueI(eActorVal_XP);
+
+	dm.m_level = player->avOwner.GetLevel();
+	dm.m_hp = (int16_t)player->avOwner.GetActorValueI(eActorVal_Health);
+	dm.m_maxHP = (int16_t) player->avOwner.GetPermanentActorValueI(eActorVal_Health);
+	dm.m_ap = (int16_t) player->avOwner.GetActorValueI(eActorVal_ActionPoints);
+	dm.m_maxAP = (int16_t) player->avOwner.GetPermanentActorValueI(eActorVal_ActionPoints);
+	dm.m_xp = (int32_t) player->avOwner.GetActorValueI(eActorVal_XP);
 	double iXPBase = 0;
 	double iXPBumpBase = 0;
 	GetNumericGameSetting("iXPBase", &iXPBase);
 	GetNumericGameSetting("iXPBumpBase", &iXPBumpBase);
-	int32_t nextLevelXP = level * ((level - 1)/2.0f * iXPBumpBase + iXPBase);
-	int8_t head = (int8_t)player->avOwner.GetActorValueI(eActorVal_Head);
-	int8_t torso = (int8_t) player->avOwner.GetActorValueI(eActorVal_Torso);
-	int8_t leftArm = (int8_t) player->avOwner.GetActorValueI(eActorVal_LeftArm);
-	int8_t rightArm = (int8_t) player->avOwner.GetActorValueI(eActorVal_RightArm);
-	int8_t leftLeg = (int8_t) player->avOwner.GetActorValueI(eActorVal_LeftLeg);
-	int8_t rightLeg = (int8_t) player->avOwner.GetActorValueI(eActorVal_RightLeg);
+	dm.m_nextXP = dm.m_level * ((dm.m_level - 1)/2.0f * iXPBumpBase + iXPBase);
+	dm.m_head = (int8_t)player->avOwner.GetActorValueI(eActorVal_Head);
+	dm.m_torso = (int8_t) player->avOwner.GetActorValueI(eActorVal_Torso);
+	dm.m_leftArm = (int8_t) player->avOwner.GetActorValueI(eActorVal_LeftArm);
+	dm.m_rightArm = (int8_t) player->avOwner.GetActorValueI(eActorVal_RightArm);
+	dm.m_leftLeg = (int8_t) player->avOwner.GetActorValueI(eActorVal_LeftLeg);
+	dm.m_rightLeg = (int8_t) player->avOwner.GetActorValueI(eActorVal_RightLeg);
 
-	int8_t radresist = (int8_t) player->avOwner.GetActorValueI(eActorVal_RadResistance);
-	int16_t rads = (int16_t) player->avOwner.GetActorValueI(eActorVal_RadLevel);
-	int16_t dehydration = (int16_t) player->avOwner.GetActorValueI(eActorVal_Dehydration);
-	int16_t hunger = (int16_t) player->avOwner.GetActorValueI(eActorVal_Hunger);
-	int16_t sleep = (int16_t) player->avOwner.GetActorValueI(eActorVal_Sleepdeprevation);
+	dm.m_radresist = (int8_t) player->avOwner.GetActorValueI(eActorVal_RadResistance);
+	dm.m_rads = (int16_t) player->avOwner.GetActorValueI(eActorVal_RadLevel);
+	dm.m_dehydration = (int16_t) player->avOwner.GetActorValueI(eActorVal_Dehydration);
+	dm.m_hunger = (int16_t) player->avOwner.GetActorValueI(eActorVal_Hunger);
+	dm.m_sleep = (int16_t) player->avOwner.GetActorValueI(eActorVal_Sleepdeprevation);
 
-	int16_t weight = (int16_t) player->avOwner.GetActorValueI(eActorVal_InventoryWeight);
-	int16_t maxWeight = (int16_t) player->avOwner.GetActorValueI(eActorVal_CarryWeight);
+	dm.m_weight = (int16_t) player->avOwner.GetActorValueI(eActorVal_InventoryWeight);
+	dm.m_maxWeight = (int16_t) player->avOwner.GetActorValueI(eActorVal_CarryWeight);
 	
-	float dr = player->avOwner.GetActorValue(eActorVal_DamageResistance);
-	float dt = player->avOwner.GetActorValue(eActorVal_Damagethreshold) -2; // For some reason it is offset with -2
+	dm.m_dr = player->avOwner.GetActorValue(eActorVal_DamageResistance);
+	dm.m_dt = player->avOwner.GetActorValue(eActorVal_Damagethreshold) -2; // For some reason it is offset with -2
 
 	SInt32 caps = 0;
 	TESForm *form = GetItemByRefID(player, 0xF, &caps); // 0xF is ID of Caps001	
+	dm.m_caps = caps;
 
-	int16_t karma = (int16_t)player->avOwner.GetActorValueI(eActorVal_Karma);
+	dm.m_karma = (int16_t)player->avOwner.GetActorValueI(eActorVal_Karma);
 
 	float x = player->posX;
 	float y = player->posY;
@@ -281,11 +269,12 @@ void DataManager::updatePlayerInfo(void *)
 	float rotY = player->rotY;
 	float rotZ = player->rotZ;
 
-	CommunicationManager::getInstance().sendPacket(new SetPlayerInfoPacket(level, 
-		hp, maxHP, ap, maxAP, xp, nextLevelXP, head, torso, leftArm, rightArm, leftLeg,
-		rightLeg, radresist, rads, 1000, dehydration, 1000, hunger, 1000, sleep, 1000, 
-		weight, maxWeight, dr, dt, caps, karma, fullName->name.CStr(), x, y, z, rotX, 
-		rotY, rotZ));
+	CommunicationManager::getInstance().sendPacket(new SetPlayerInfoPacket(dm.m_level,
+		dm.m_hp, dm.m_maxHP, dm.m_ap, dm.m_maxAP, dm.m_xp, dm.m_nextXP, dm.m_head, 
+		dm.m_torso, dm.m_leftArm, dm.m_rightArm, dm.m_leftLeg, dm.m_rightLeg, 
+		dm.m_radresist, dm.m_rads, 1000, dm.m_dehydration, 1000, dm.m_hunger, 1000, 
+		dm.m_sleep, 1000, dm.m_weight, dm.m_maxWeight, dm.m_dr, dm.m_dt, caps, 
+		dm.m_karma, fullName->name.CStr(), x, y, z, rotX, rotY, rotZ));
 }
 
 void DataManager::updateSpecial(void *)
@@ -465,26 +454,11 @@ void DataManager::updateStats(void *)
 		sprintf(settingName, "sMiscStat%03d", i);
 		if (!gs->GetGameSetting(settingName, &setting))
 			continue;
+		double value = 0;
+		getPCMiscStat(NULL, i, 0, &value);
+		// double value = dm.m_miscStatisticsValues[i];
 		dm.m_stats.push_back(StatisticsInfoItem(setting->Get(), "", "", "",
-			std::to_string(dm.m_miscStatisticsValues[i]), ""));
-
-		/*
-		std::string command = "int iStat\n\r set iStat to GetPCMiscStat \"";
-		command += setting->Get();
-		command += "\"";
-
-		
-		int iResult = 0;
-		CALL_MEMBER_FN(script, Constructor)();
-		CALL_MEMBER_FN(script, MarkAsTemporary)();
-		CALL_MEMBER_FN(script, SetText)(command.c_str());
-		
-		bool bResult = CALL_MEMBER_FN(script, Run)(consoleManager->scriptContext, true, NULL);
-		VariableInfo *resultInfo = script->GetVariableByName("iStat");
-		if (resultInfo != NULL) {
-			Script::RefVariable *result = script->GetVariable(resultInfo->idx);
-		}
-		CALL_MEMBER_FN(script, Destructor)();*/
+			std::to_string((int)value), ""));
 	}
 	dm.m_miscStatisticValuesMutex.unlock();
 
@@ -579,29 +553,27 @@ void DataManager::updateWorldInfo(void *)
 void DataManager::updateInventory(void *)
 {
 	const std::string texturePrefix = "textures\\";
-	std::vector<Item *> inventory;
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
 	DataManager &dm = DataManager::getInstance();
 	DataHandler *dh = DataHandler::Get();
+	BGSDefaultObjectManager *def = BGSDefaultObjectManager::GetSingleton();
+	if (def == NULL || dh == NULL || player == NULL)
+		return;
 
 	ExtraContainerChanges* pXContainerChanges = static_cast<ExtraContainerChanges*>
 		(player->extraDataList.GetByType(kExtraData_ContainerChanges));
 	ExtraContainerInfo info(pXContainerChanges ? pXContainerChanges->GetEntryDataList() : NULL);
-	
-	//_MESSAGE("Inventory items");
-	//IDebugLog::Indent();
+
+	for (std::vector<Item *>::iterator it = dm.m_inventory.begin(); it != dm.m_inventory.end();
+	++it) {
+		delete *it;
+	}
+	dm.m_inventory.clear();
+
 	for (ExtraDataVec::iterator it = info.m_vec.begin(); it != info.m_vec.end(); ++it) {
 		if (!(*it)->type->IsInventoryObject() || (*it)->countDelta <= 0)
 			continue;
 		ExtraContainerChanges::ExtendDataList *extendData = (*it)->extendData;
-		/*_MESSAGE("Item %s(%d): %s(%d)", GetObjectClassName((*it)->type), (*it)->type->GetTypeID(),
-			(*it)->type->GetFullName()->name.CStr(), (*it)->countDelta);
-		IDebugLog::Indent();
-		for (ExtraContainerChanges::ExtendDataList::Iterator it = extendData->Begin(); 
-			!it.End(); ++it) {
-			it->DebugDump();
-		}
-		IDebugLog::Outdent();*/
 		TESForm *object = (*it)->type;
 		ExtraHealth *curHealth = NULL;
 		int count = (*it)->countDelta;
@@ -612,6 +584,24 @@ void DataManager::updateInventory(void *)
 			worn |= ((BaseExtraList *)(*it))->IsWorn();
 		}
 		
+		int refID = (*it)->type->refID;
+		if ((*it)->type->IsReference()) {
+			refID = ((TESObjectREFR *)(*it)->type)->baseForm->refID;
+		}
+
+		if (refID == def->defaultObjects.asStruct.Stimpak->refID) {
+			dm.m_numStimpacks = (*it)->countDelta;
+		}
+		else if (refID == def->defaultObjects.asStruct.DoctorsBag->refID) {
+			dm.m_numDrBag = (*it)->countDelta;
+		}
+		else if (refID == def->defaultObjects.asStruct.RadAway->refID) {
+			dm.m_numRadaway = (*it)->countDelta;
+		}
+		else if (refID == def->defaultObjects.asStruct.RadX->refID) {
+			dm.m_numRadX = (*it)->countDelta;
+		}
+
 		switch ((*it)->type->GetTypeID()) {
 		case kFormType_Weapon: 
 		{
@@ -627,7 +617,7 @@ void DataManager::updateInventory(void *)
 				value = (int)(value * powf(cnd, 1.5));
 				dam *= cnd;
 			}
-			inventory.push_back(new WeaponItem(weapon->refID, weapon->fullName.name.CStr(),
+			dm.m_inventory.push_back(new WeaponItem(weapon->refID, weapon->fullName.name.CStr(),
 				count, value, weapon->weight.weight, 
 				icon, "", true, worn, "", 
 				floor(dam*weapon->animShotsPerSec + 0.5f), floorf(dam + 0.5f), 
@@ -648,7 +638,7 @@ void DataManager::updateInventory(void *)
 			if (iconPtr->ddsPath.CStr() != NULL)
 				icon = texturePrefix + iconPtr->ddsPath.CStr();
 
-			inventory.push_back(new ApparelItem(armor->refID, armor->fullName.name.CStr(),
+			dm.m_inventory.push_back(new ApparelItem(armor->refID, armor->fullName.name.CStr(),
 				count, value, armor->weight.weight, icon, "",
 				true, worn, "", armor->damageThreshold, 0, cnd));
 			break;
@@ -659,7 +649,7 @@ void DataManager::updateInventory(void *)
 			std::string icon = "";
 			if (alchemy->icon.ddsPath.CStr() != NULL)
 				icon = texturePrefix + alchemy->icon.ddsPath.CStr();
-			inventory.push_back(new AidItem(alchemy->refID, alchemy->fullName.name.CStr(), count, 
+			dm.m_inventory.push_back(new AidItem(alchemy->refID, alchemy->fullName.name.CStr(), count,
 				alchemy->value, 0, icon, "", false, worn, ""));
 			break;
 		}
@@ -675,7 +665,7 @@ void DataManager::updateInventory(void *)
 				description = "";
 			}
 
-			inventory.push_back(new ItemModItem(itemMod->refID, itemMod->name.name.CStr(),
+			dm.m_inventory.push_back(new ItemModItem(itemMod->refID, itemMod->name.name.CStr(),
 				count, itemMod->value.value, itemMod->weight.weight, icon, "", false,
 				false, description));
 
@@ -690,7 +680,7 @@ void DataManager::updateInventory(void *)
 			if (misc->icon.ddsPath.CStr() != NULL)
 				icon = texturePrefix + misc->icon.ddsPath.CStr();
 
-			inventory.push_back(new MiscItem(misc->refID, misc->fullName.name.CStr(),
+			dm.m_inventory.push_back(new MiscItem(misc->refID, misc->fullName.name.CStr(),
 				count, misc->value.value, misc->weight.weight, icon, "", false, false,
 				""));
 			break;
@@ -751,7 +741,7 @@ void DataManager::updateInventory(void *)
 				effects.pop_back();
 			}
 
-			inventory.push_back(new AmmoItem(ammo->refID, ammo->fullName.name.CStr(),
+			dm.m_inventory.push_back(new AmmoItem(ammo->refID, ammo->fullName.name.CStr(),
 				count, ammo->value.value, ammo->weight, icon, "", false, false, effects));
 			break;
 		}
@@ -763,7 +753,7 @@ void DataManager::updateInventory(void *)
 			if (book->icon.ddsPath.CStr() != NULL)
 				icon = texturePrefix + book->icon.ddsPath.CStr();
 
-			inventory.push_back(new AidItem(book->refID, book->fullName.name.CStr(),
+			dm.m_inventory.push_back(new AidItem(book->refID, book->fullName.name.CStr(),
 				count, book->value.value, book->weight.weight, icon, "", false, false,
 				""));
 			break;
@@ -799,7 +789,7 @@ void DataManager::updateInventory(void *)
 			if (cchip->icon.ddsPath.CStr() != NULL)
 				icon = texturePrefix + cchip->icon.ddsPath.CStr();
 
-			inventory.push_back(new MiscItem(cchip->refID, cchip->fullName.name.CStr(),
+			dm.m_inventory.push_back(new MiscItem(cchip->refID, cchip->fullName.name.CStr(),
 				count, 0, 0, icon, "", false, false, ""));
 			break;
 		}
@@ -811,7 +801,7 @@ void DataManager::updateInventory(void *)
 			if (cmon->icon.ddsPath.CStr() != NULL)
 				icon = texturePrefix + cmon->icon.ddsPath.CStr();
 
-			inventory.push_back(new MiscItem(cmon->refID, cmon->fullName.name.CStr(),
+			dm.m_inventory.push_back(new MiscItem(cmon->refID, cmon->fullName.name.CStr(),
 				count, cmon->value.value, 0, icon, "", false, false,
 				""));
 			break;
@@ -830,14 +820,20 @@ void DataManager::updateInventory(void *)
 
 	//IDebugLog::Outdent();
 
-	CommunicationManager::getInstance().sendPacket(new SetInventoryPacket(inventory));
+	CommunicationManager::getInstance().sendPacket(new SetInventoryPacket(dm.m_inventory, false));
 }
 
 void DataManager::updateNotes(void *)
 {
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
 	const std::string texturePrefix = "textures\\";
-	std::vector<Note *> list;
+	DataManager &dm = DataManager::getInstance();
+
+	for (std::vector<Note *>::iterator it = dm.m_notes.begin(); it != dm.m_notes.end();
+	++it) {
+		delete *it;
+	}
+	dm.m_notes.clear();
 
 	for (PlayerCharacter::NoteListEntry *entry = &player->noteList; entry != NULL; 
 			entry = entry->nextNote) {
@@ -849,7 +845,7 @@ void DataManager::updateNotes(void *)
 		case BGSNote::Sound:
 		{
 			UInt32 soundID = CALL_MEMBER_FN(note, GetSoundNote)();
-			list.push_back(new Note(title, NOTETYPE_SOUND, "", note->flags));
+			dm.m_notes.push_back(new Note(title, NOTETYPE_SOUND, "", note->flags));
 			break;
 		}
 		case BGSNote::Text:
@@ -858,7 +854,7 @@ void DataManager::updateNotes(void *)
 			const char *text = "";
 			if(desc)
 				text = desc->Get(note, 'MANT');
-			list.push_back(new Note(title, NOTETYPE_TEXT, text, note->flags));
+			dm.m_notes.push_back(new Note(title, NOTETYPE_TEXT, text, note->flags));
 			break;
 		}
 		case BGSNote::Image:
@@ -869,26 +865,27 @@ void DataManager::updateNotes(void *)
 			if (image != NULL && image->ddsPath.CStr() != NULL)
 				path = texturePrefix + image->ddsPath.CStr();
 
-			list.push_back(new Note(title, NOTETYPE_IMAGE, path, note->flags));
+			dm.m_notes.push_back(new Note(title, NOTETYPE_IMAGE, path, note->flags));
 			break;
 		}
 		case BGSNote::Voice:
 		{
 			UInt32 topicID = CALL_MEMBER_FN(note, GetVoiceNoteTopic)();
 			TESNPC *speakerID = CALL_MEMBER_FN(note, GetVoiceNoteSpeaker)();
-			list.push_back(new Note(title, NOTETYPE_VOICE, "", note->flags));
+			dm.m_notes.push_back(new Note(title, NOTETYPE_VOICE, "", note->flags));
 			break;
 		}
 		}
 	}
 
 
-	CommunicationManager::getInstance().sendPacket(new SetNotesPacket(list));
+	CommunicationManager::getInstance().sendPacket(new SetNotesPacket(dm.m_notes, false));
 }
 
 void DataManager::updateQuests(void *)
 {
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	DataManager &dm = DataManager::getInstance();
 
 	std::map<TESQuest *, Quest *> quests;
 	std::list<TESQuest *> order;
@@ -912,35 +909,54 @@ void DataManager::updateQuests(void *)
 		quest->addObjective(objective);
 	}
 
-	std::vector<Quest *> list;
+
+	for (std::vector<Quest *>::iterator it = dm.m_quests.begin(); it != dm.m_quests.end();
+	++it) {
+		delete *it;
+	}
+	dm.m_quests.clear();
 	for (std::list<TESQuest *>::iterator it = order.begin(); it != order.end(); ++it) {
 		Quest *quest = quests.at(*it);
 		if(!quest->isCompleted())
-			list.push_back(quest);
+			dm.m_quests.push_back(quest);
 	}
 	for (std::list<TESQuest *>::iterator it = order.begin(); it != order.end(); ++it) {
 		Quest *quest = quests.at(*it);
 		if (quest->isCompleted())
-			list.push_back(quest);
+			dm.m_quests.push_back(quest);
 	}
 
-	CommunicationManager::getInstance().sendPacket(new SetQuestsPacket(list));
+	CommunicationManager::getInstance().sendPacket(new SetQuestsPacket(dm.m_quests, false));
 }
 
 void DataManager::updateMapMarkers(void *)
 {
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
 	DataManager &dm = DataManager::getInstance();
+	if (player == NULL) return;
 	TESObjectCELL *currentCell = player->parentCell;
 	if (currentCell == NULL || currentCell->worldSpace == NULL || 
 		currentCell->worldSpace->cell == NULL) {
 		return;
 	}
-
-	std::vector<MapMarker *> markers;
+	
+	for (std::vector<MapMarker *>::iterator it = dm.m_markers.begin(); it != dm.m_markers.end();
+		++it) {
+		delete *it;
+	}
+	dm.m_markers.clear();
 
 	TESObjectCELL *cell = currentCell->worldSpace->cell;
 	for (tList<TESObjectREFR>::Iterator it = cell->objectList.Begin(); !it.End(); ++it) {
+		const char *name = "";
+		const char *className = GetObjectClassName(it->baseForm);
+		if (it->baseForm->GetFullName() != NULL) {
+			name = it->baseForm->GetFullName()->name.CStr();
+		}
+		if (className == NULL) {
+			className = "";
+		}
+		//_MESSAGE("Object: %08X base:%08X class:(%s) name:(%s)", it->refID, it->baseForm->refID, className, name);
 		if (it->baseForm == *((TESForm **)0x11CA224)) { // MapMarker Reference
 			ExtraMapMarker *extraMarker = 
 				(ExtraMapMarker *)it->extraDataList.GetByType(kExtraData_MapMarker);
@@ -950,14 +966,14 @@ void DataManager::updateMapMarkers(void *)
 				std::string reputationStr;
 				if (reputation != NULL) {
 				}
-				markers.push_back(new MapMarker(it->posX, it->posY, it->posZ, 
+				dm.m_markers.push_back(new MapMarker(it->refID, it->posX, it->posY, it->posZ,
 					(enum MapMarker::Type) extraMarker->data->type,
 					extraMarker->data->fullName.name.CStr(), extraMarker->data->flags, 
 					reputationStr));
 			}
 		}
 	}
-	CommunicationManager::getInstance().sendPacket(new SetMapMarkersPacket(markers));
+	CommunicationManager::getInstance().sendPacket(new SetMapMarkersPacket(dm.m_markers, false));
 }
 
 std::string DataManager::getSystemName()

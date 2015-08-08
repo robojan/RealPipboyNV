@@ -12,8 +12,8 @@ DataPacket(DataPacketHeader(buffer, bufferSize))
 	readPacket(buffer, bufferSize);
 }
 
-SetQuestsPacket::SetQuestsPacket(const std::vector<Quest *> &list) :
-	m_quests(list)
+SetQuestsPacket::SetQuestsPacket(const std::vector<Quest *> &list, bool deleteQuests) :
+	m_quests(list), m_deleteQuests(deleteQuests)
 {
 	m_header = DataPacketHeader(getType(), getSize() - DataPacketHeader::getHeaderSize());
 	m_valid = true;
@@ -21,8 +21,10 @@ SetQuestsPacket::SetQuestsPacket(const std::vector<Quest *> &list) :
 
 SetQuestsPacket::~SetQuestsPacket()
 {
-	for (std::vector<Quest *>::iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
-		delete *it;
+	if (m_deleteQuests) {
+		for (std::vector<Quest *>::iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
+			delete *it;
+		}
 	}
 }
 

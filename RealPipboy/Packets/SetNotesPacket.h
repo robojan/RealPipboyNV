@@ -27,7 +27,7 @@ class SetNotesPacket :
 {
 public:
 	SetNotesPacket(const char *buffer, size_t bufferSize);
-	SetNotesPacket(const std::vector<Note *> &notes);
+	SetNotesPacket(const std::vector<Note *> &notes, bool deleteNotes);
 	virtual ~SetNotesPacket();
 
 	virtual MessageType getType();
@@ -39,5 +39,6 @@ private:
 	void readPacket(const char *buffer, size_t bufferSize);
 
 	std::vector<Note *> m_notes;
+	bool m_deleteNotes;
 };
 

@@ -42,7 +42,7 @@ class SetInventoryPacket :
 {
 public:
 	SetInventoryPacket(const char *buffer, size_t bufferSize);
-	SetInventoryPacket(const std::vector<Item *> items);
+	SetInventoryPacket(const std::vector<Item *> items, bool deleteItems);
 	virtual ~SetInventoryPacket();
 
 	virtual MessageType getType();
@@ -54,5 +54,6 @@ private:
 	void readPacket(const char *buffer, size_t bufferSize);
 
 	std::vector<Item *> m_items;
+	bool m_deleteItems;
 };
 

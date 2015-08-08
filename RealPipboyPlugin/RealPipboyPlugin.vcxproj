@@ -225,6 +225,7 @@
     <ClCompile Include="..\nvse\nvse\NiNodes.cpp" />
     <ClCompile Include="..\nvse\nvse\SafeWrite.cpp" />
     <ClCompile Include="..\nvse\nvse\Utilities.cpp" />
+    <ClCompile Include="ActionHandler.cpp" />
     <ClCompile Include="dllmain.cpp">
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug ng|Win32'">
       </ForcedIncludeFiles>
@@ -263,6 +264,7 @@
     <ClInclude Include="..\nvse\nvse\NiTypes.h" />
     <ClInclude Include="..\nvse\nvse\SafeWrite.h" />
     <ClInclude Include="..\nvse\nvse\Utilities.h" />
+    <ClInclude Include="ActionHandler.h" />
     <ClInclude Include="DataManager.h" />
     <ClInclude Include="FileTransferHandler.h" />
     <ClInclude Include="FOResourceManager.h" />

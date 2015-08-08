@@ -16,4 +16,5 @@ enum class MessageType {
 	SETWORLDINFO = 12,
 	SENDFILEDATA = 13,
 	SETMAPMARKERS = 14,
+	DOACTION = 15
 };

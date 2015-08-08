@@ -29,7 +29,7 @@ public:
 		TYPE_VAULT
 	};
 
-	MapMarker(float x, float y, float z, enum Type type, const std::string &name, uint16_t flags, const std::string &reputation);
+	MapMarker(uint32_t id, float x, float y, float z, enum Type type, const std::string &name, uint16_t flags, const std::string &reputation);
 	~MapMarker();
 
 	inline void setVisible(bool visible) { m_flags = (m_flags & ~FLAG_VISIBLE) | (visible ? FLAG_VISIBLE : 0); }
@@ -52,6 +52,8 @@ public:
 	inline void setY(float y) { m_y = y; }
 	inline float getZ() const { return m_z; }
 	inline void setZ(float z) { m_z = z; }
+	inline uint32_t getID() const { return m_id; }
+	inline void setID(uint32_t id) { m_id = id; }
 
 private:
 	enum Type m_type;
@@ -59,5 +61,6 @@ private:
 	std::string m_fullName;
 	std::string m_reputation;
 	float m_x, m_y, m_z;
+	uint32_t m_id;
 };
 

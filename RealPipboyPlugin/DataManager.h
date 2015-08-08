@@ -4,10 +4,15 @@
 #include "RealPipboy/DataTypes/StatisticsInfoItem.h"
 #include "RealPipboy/DataTypes/StatusEffect.h"
 #include "RealPipboy/DataTypes/PlayerEffect.h"
-#include "RealPipboy/DataTypes/MapMarker.h"
 
 #include <string>
+#include <vector>
 #include <mutex>
+
+class Item;
+class Quest;
+class Note;
+class MapMarker;
 
 class DataManager :
 	public IDataManager
@@ -44,7 +49,12 @@ private:
 	static void updateMapMarkers(void *);
 
 	static DataManager m_ourInstance;
+	std::vector<int> m_updateIds;
 
+	std::mutex m_miscStatisticValuesMutex;
+	std::vector<int> m_miscStatisticsValues;
+
+public:
 	std::vector<StatisticsInfoItem> m_special;
 	std::vector<StatisticsInfoItem> m_skills;
 	std::vector<StatisticsInfoItem> m_perks;
@@ -54,16 +64,24 @@ private:
 	std::vector<StatusEffect> m_fodEffects; 
 	std::vector<StatusEffect> m_slpEffects;
 	std::vector<PlayerEffect> m_playerEffects;
-
-	std::mutex m_miscStatisticValuesMutex;
-	std::vector<int> m_miscStatisticsValues;
+	std::vector<Item *> m_inventory;
+	std::vector<Note *> m_notes;
+	std::vector<Quest *> m_quests;
+	std::vector<MapMarker *> m_markers;
 
 	bool m_hardcore;
 
-	std::vector<int> m_updateIds;
-	float m_variable;
+	uint16_t m_level;
+	int16_t m_hp, m_maxHP, m_ap, m_maxAP;
+	int32_t m_xp, m_nextXP, m_caps;
+	int8_t m_head, m_torso, m_leftArm, m_rightArm, m_leftLeg, m_rightLeg, m_radresist;
+	int16_t m_rads, m_dehydration, m_hunger, m_sleep, m_weight, m_maxWeight, m_karma;
+	float m_dr, m_dt;
 
-
+	int m_numStimpacks;
+	int m_numDrBag;
+	int m_numRadaway;
+	int m_numRadX;
 
 };
 

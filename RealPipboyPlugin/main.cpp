@@ -10,6 +10,7 @@
 #include "DataManager.h"
 #include "FOResourceManager.h"
 #include "FileTransferHandler.h"
+#include "ActionHandler.h"
 
 #include <string>
 #include <process.h>
@@ -45,6 +46,7 @@ unsigned int __stdcall mainThread(void *){
 	FOResourceManager::getSingleton()->load(GetFalloutDirectory() + "Data");
 
 	FileTransferHandler fileTransferHandler;
+	ActionHandler actionHandler;
 
 	_MESSAGE("Starting server");
 	gPipboy.makeConnectable(true);
@@ -247,9 +249,15 @@ bool NVSEPlugin_Load(const NVSEInterface * nvse)
 	nvse->RegisterCommand(&kCommandInfo_RPUpdateMiscStat);
 	nvse->RegisterCommand(&kCommandInfo_RPUpdateHardcore);
 
-	if (!nvse->isEditor) {
-		gRunning = true;
-		g_mainThreadHandle = _beginthreadex(NULL, 0, mainThread, NULL, NULL, NULL);
+	if (nvse->isNogore) {
+		_ERROR("Sorry, the no gore version is not supported");
+		gRunning = false;
+	}
+	else {
+		if (!nvse->isEditor) {
+			gRunning = true;
+			g_mainThreadHandle = _beginthreadex(NULL, 0, mainThread, NULL, NULL, NULL);
+		}
 	}
 
 	return true;

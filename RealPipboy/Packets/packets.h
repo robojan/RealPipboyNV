@@ -15,6 +15,7 @@
 #include "SetWorldInfoPacket.h"
 #include "SendFileDataPacket.h"
 #include "SetMapMarkersPacket.h"
+#include "DoActionPacket.h"
 #include "MessageTypes.h"
 
 inline DataPacket *GetDataPacketFromBuffer(const char *buffer, unsigned int size) {
@@ -34,6 +35,7 @@ inline DataPacket *GetDataPacketFromBuffer(const char *buffer, unsigned int size
 	case MessageType::SETWORLDINFO: return new SetWorldInfoPacket(buffer, size);
 	case MessageType::SENDFILEDATA: return new SendFileDataPacket(buffer, size);
 	case MessageType::SETMAPMARKERS: return new SetMapMarkersPacket(buffer, size);
+	case MessageType::DOACTION: return new DoActionPacket(buffer, size);
 	default: return new DataPacket(buffer, size);
 	}
 }
