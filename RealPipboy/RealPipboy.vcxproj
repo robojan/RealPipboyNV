@@ -99,6 +99,7 @@
     <ClCompile Include="DataTypes\StatisticsInfoItem.cpp" />
     <ClCompile Include="DataTypes\PlayerEffect.cpp" />
     <ClCompile Include="DataTypes\Quest.cpp" />
+    <ClCompile Include="DataTypes\Radio.cpp" />
     <ClCompile Include="RealPipboy.cpp" />
     <ClCompile Include="Communication\Socket.cpp" />
     <ClCompile Include="DataTypes\StatusEffect.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="DataTypes\StatisticsInfoItem.h" />
     <ClInclude Include="DataTypes\PlayerEffect.h" />
     <ClInclude Include="DataTypes\Quest.h" />
+    <ClInclude Include="DataTypes\Radio.h" />
     <ClInclude Include="RealPipboy.h" />
     <ClInclude Include="Scheduler.h" />
     <ClInclude Include="Packets\SendFileDataPacket.h" />

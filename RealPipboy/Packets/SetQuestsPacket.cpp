@@ -42,7 +42,12 @@ size_t SetQuestsPacket::getSize()
 		const std::list<QuestObjective> &objectives = (*itQuest)->getObjectives();
 		for (std::list<QuestObjective>::const_iterator itObj = objectives.cbegin();
 			itObj != objectives.cend(); ++itObj) {
-			dataSize += 10 + (*itObj).getText().length();
+			dataSize += 12 + (*itObj).getText().length();
+			const std::list<QuestObjective::Target> *targets = itObj->getTargets();
+			for (std::list<QuestObjective::Target>::const_iterator itTarget = targets->cbegin();
+				itTarget != targets->cend(); ++itTarget) {
+				dataSize += 4 * 4;
+			}
 		}
 	}
 
@@ -80,6 +85,21 @@ void SetQuestsPacket::fillBuffer(char *buffer, size_t bufferSize)
 			memcpy(buffer + 10, itObj->getText().c_str(), itObj->getText().length());
 			buffer += 10 + itObj->getText().length();
 			bufferSize -= 10 + itObj->getText().length();
+
+			const std::list<QuestObjective::Target> *targets = itObj->getTargets();
+			*((uint16_t *)(buffer + 0)) = htons((uint16_t)targets->size());
+			buffer += 2;
+			bufferSize -= 2;
+
+			for (std::list<QuestObjective::Target>::const_iterator itTarget = targets->cbegin();
+			itTarget != targets->cend(); ++itTarget) {
+				*((uint32_t *)(buffer + 0)) = htonl(itTarget->id);
+				*((uint32_t *)(buffer + 4)) = htonf(itTarget->x);
+				*((uint32_t *)(buffer + 8)) = htonf(itTarget->y);
+				*((uint32_t *)(buffer + 12)) = htonf(itTarget->z);
+				buffer += 16;
+				bufferSize -= 16;
+			}
 		}
 	}
 }
@@ -109,9 +129,22 @@ void SetQuestsPacket::readPacket(const char *buffer, size_t bufferSize)
 			unsigned int flags = ntohl(*((uint32_t *)(buffer + 4)));
 			int textLen = ntohs(*((uint16_t *)(buffer + 8)));
 			std::string text(buffer + 10, textLen);
-			buffer += 10 + textLen;
-			bufferSize -= 10 + textLen;
-			quest->addObjective(QuestObjective(objectiveID, text, flags));
+			int numTargets = ntohs(*((uint16_t *)(buffer + 10 + textLen)));
+			buffer += 12 + textLen;
+			bufferSize -= 12 + textLen;
+
+			QuestObjective objective(objectiveID, text, flags);
+
+			for (int k = 0; k < numTargets; k++) {
+				QuestObjective::Target target;
+				target.id = ntohl(*((uint32_t *)(buffer + 0)));
+				target.x = ntohf(*((uint32_t *)(buffer + 4)));
+				target.y = ntohf(*((uint32_t *)(buffer + 4)));
+				target.z = ntohf(*((uint32_t *)(buffer + 4)));
+				objective.addTarget(target);
+			}
+			
+			quest->addObjective(objective);
 		}
 	}
 	m_valid = true;

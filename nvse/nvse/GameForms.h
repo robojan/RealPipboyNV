@@ -2194,8 +2194,29 @@ public:
 
 STATIC_ASSERT(sizeof(TESObjectACTI) == 0x90);
 
-// BGSTalkingActivator (8C)
-class BGSTalkingActivator;
+// BGSTalkingActivator 
+class BGSTalkingActivator : public TESObjectACTI {
+public:
+	BGSTalkingActivator();
+	~BGSTalkingActivator();
+
+	enum {
+		kFlagRadio = 0x20000,
+		kFlagContinousBroadcast = 0x40000000,
+		kFlagNonPipboy = 0x10000000,
+		kFlagLocalMap = 0x200,
+		kFlagNoVoiceFilter = 0x2000,
+	};
+
+	UInt32 unk90;
+	BGSVoiceType *voiceType;
+
+	bool isNonPipboy() const { return (this->flags & kFlagNonPipboy) != 0; }
+	bool isRadio() const { return (this->flags & kFlagRadio) != 0; }
+	bool isContinousBroadcast() const { return (this->flags & kFlagContinousBroadcast) != 0; }
+	bool isOnLocalMap() const { return (this->flags & kFlagLocalMap) != 0; }
+	bool hasNoVoiceFilter() const { return (this->flags & kFlagNoVoiceFilter) != 0; }
+};
 
 class BGSNote;
 
@@ -4631,8 +4652,7 @@ public:
 	~BGSVoiceType();
 
 	UInt32		unk018;		// 018
-	UInt32		unk01C;		// 01C
-	UInt32		unk020;		// 020
+	String		name;		// 01C
 };
 
 struct ColorRGB

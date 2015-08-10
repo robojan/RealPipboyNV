@@ -44,6 +44,7 @@ unsigned int __stdcall mainThread(void *){
 	gPipboy.init();
 
 	FOResourceManager::getSingleton()->load(GetFalloutDirectory() + "Data");
+	DataManager::getInstance().init();
 
 	FileTransferHandler fileTransferHandler;
 	ActionHandler actionHandler;
@@ -111,51 +112,6 @@ void MessageHandler(NVSEMessagingInterface::Message* msg)
 			break;
 	}
 }
-
-#ifdef RUNTIME
-
-bool Cmd_RPUpdateMiscStat_Execute(COMMAND_ARGS)
-{
-	*result = 1;
-
-	int stat;
-	int value;
-
-	if (!ExtractArgs(EXTRACT_ARGS, &stat, &value))
-		return true;
-
-	DataManager::getInstance().setStat(stat, value);
-
-	return true;
-}
-
-bool Cmd_RPUpdateHardcore_Execute(COMMAND_ARGS)
-{
-	*result = 1;
-
-	int hardcore;
-
-	if (!ExtractArgs(EXTRACT_ARGS, &hardcore))
-		return true;
-
-	DataManager::getInstance().setHardcore(hardcore != 0);
-
-	return true;
-}
-
-#endif
-
-static ParamInfo kParams_RPUpdateMiscStat[2] = {
-	{ "Statistic index", kParamType_Integer, 0},
-	{ "value" , kParamType_Integer, 0}
-};
-
-static ParamInfo kParams_RPUpdateHardcore[1] = {
-	{ "hardcore", kParamType_Integer, 0 },
-};
-
-DEFINE_COMMAND_PLUGIN(RPUpdateMiscStat, "Set a miscellaneous statistic on the app", 0, 2, kParams_RPUpdateMiscStat);
-DEFINE_COMMAND_PLUGIN(RPUpdateHardcore, "Set hardcore mode on the app", 0, 1, kParams_RPUpdateHardcore);
 
 extern "C" {
 
@@ -245,9 +201,7 @@ bool NVSEPlugin_Load(const NVSEInterface * nvse)
 	 **************************************************************************/
 
 	// register commands
-	nvse->SetOpcodeBase(0x3000);
-	nvse->RegisterCommand(&kCommandInfo_RPUpdateMiscStat);
-	nvse->RegisterCommand(&kCommandInfo_RPUpdateHardcore);
+	//nvse->SetOpcodeBase(0x3000);
 
 	if (nvse->isNogore) {
 		_ERROR("Sorry, the no gore version is not supported");

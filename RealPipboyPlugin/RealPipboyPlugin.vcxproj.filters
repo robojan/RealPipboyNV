@@ -71,6 +71,8 @@
       <Filter>nvse\NetImmerse</Filter>
     </ClCompile>
     <ClCompile Include="ActionHandler.cpp" />
+    <ClCompile Include="SettingsFormList.cpp" />
+    <ClCompile Include="Config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -138,6 +140,8 @@
       <Filter>nvse\NetImmerse</Filter>
     </ClInclude>
     <ClInclude Include="ActionHandler.h" />
+    <ClInclude Include="SettingsFormList.h" />
+    <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

@@ -8,6 +8,7 @@ class IDataManager
 public:
 	virtual void registerUpdates(Scheduler &scheduler) = 0;
 	virtual void deregisterUpdates(Scheduler &scheduler) = 0;
+	virtual void init() = 0;
 
 	virtual void update() = 0;
 

@@ -62,6 +62,16 @@ void QuestObjective::setDisplayed(bool displayed)
 	}
 }
 
+void QuestObjective::addTarget(const QuestObjective::Target &target)
+{
+	m_targets.push_back(target);
+}
+
+const std::list<QuestObjective::Target> *QuestObjective::getTargets() const
+{
+	return &m_targets;
+}
+
 Quest::Quest(unsigned int id, const std::string &name, unsigned int flags) :
 	m_name(name), m_flags(flags), m_questID(id)
 {

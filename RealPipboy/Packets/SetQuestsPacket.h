@@ -24,6 +24,12 @@
 // 4		4		int32		flags
 // 8		2		int16		textLen
 // 10		n		char[]		text
+// ..		2		int16		number of targets
+// each target
+// 0		4		int32		targetID
+// 4		4		float		x
+// 8		4		float		y
+// 12		4		float		z
 
 
 class SetQuestsPacket :

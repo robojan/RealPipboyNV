@@ -242,6 +242,8 @@
     <ClCompile Include="FOResourceStream.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DataManager.cpp" />
+    <ClCompile Include="SettingsFormList.cpp" />
+    <ClCompile Include="Config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h" />
@@ -269,6 +271,8 @@
     <ClInclude Include="FileTransferHandler.h" />
     <ClInclude Include="FOResourceManager.h" />
     <ClInclude Include="FOResourceStream.h" />
+    <ClInclude Include="SettingsFormList.h" />
+    <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

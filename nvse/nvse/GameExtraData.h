@@ -283,6 +283,28 @@ enum {
 extern char * GetExtraDataValue(BSExtraData* traverse);
 extern char * GetExtraDataName(UInt8 ExtraDataType);
 
+// 01C
+class ExtraRadioData : public BSExtraData
+{
+public:
+	ExtraRadioData();
+	~ExtraRadioData();
+	
+	enum {
+		kModeRadius = 0,
+		kModeEverywhere = 1,
+		kModeWorldspaceAndLinkedInteriors = 2,
+		kModeLinkedInteriors = 3,
+		kModeCurrentCellOnly = 4,
+	};
+
+	float radius;
+	UInt32 mode;
+	float staticPercentage;
+	TESObjectREFR *exteriorPosRef;
+
+};
+
 // 014
 class ExtraAction : public BSExtraData
 {

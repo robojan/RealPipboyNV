@@ -150,6 +150,10 @@ void TestDataManager::updateWorldInfo(void *)
 
 }
 
+void TestDataManager::init()
+{
+}
+
 void TestDataManager::update()
 {
 	

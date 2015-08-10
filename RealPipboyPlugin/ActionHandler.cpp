@@ -55,6 +55,9 @@ void ActionHandler::handlePacket(DataPacket *p)
 	case DOACTION_SETACTIVEQUEST:
 		actionSetActiveQuest(packet->getParam(0));
 		break;
+	case DOACTION_TUNERADIO:
+		actionTuneRadio(packet->getParam(0));
+		break;
 	default:
 		_ERROR("Unknown Do Action packet received. Action: %d", packet->getID());
 	}
@@ -112,22 +115,12 @@ void ActionHandler::actionUseRadX()
 
 void ActionHandler::actionEquipItem(UInt32 refID, bool noEquip, bool hideMessage)
 {
-	DataManager &dm = DataManager::getInstance();
-	BGSDefaultObjectManager *defObj = BGSDefaultObjectManager::GetSingleton();
-	if (dm.m_numRadX <= 0) {
-		return;
-	}
 	sprintf_s(commandBuf, "player.equipitem %x %d %d", refID, noEquip ? 1 : 0, hideMessage ? 1 : 0);
 	Script::RunScriptLine(commandBuf);
 }
 
 void ActionHandler::actionUnequipItem(UInt32 refID, bool noEquip, bool hideMessage)
 {
-	DataManager &dm = DataManager::getInstance();
-	BGSDefaultObjectManager *defObj = BGSDefaultObjectManager::GetSingleton();
-	if (dm.m_numRadX <= 0) {
-		return;
-	}
 	sprintf_s(commandBuf, "player.unequipitem %x %d %d", refID, noEquip ? 1 : 0, hideMessage ? 1 : 0);
 	Script::RunScriptLine(commandBuf);
 }
@@ -162,5 +155,24 @@ void ActionHandler::actionSetActiveQuest(UInt32 refID)
 	}
 	sprintf_s(commandBuf, "ForceActiveQuest %x", quest->refID);
 	Script::RunScriptLine(commandBuf);
+}
+
+void ActionHandler::actionTuneRadio(UInt32 refID)
+{
+	if (refID != 0) {
+		TESObjectREFR *radio = DYNAMIC_CAST(LookupFormByID(refID), TESForm, TESObjectREFR);
+		if (radio == NULL)
+			return;
+		sprintf_s(commandBuf, "pipboyRadio off");
+		Script::RunScriptLine(commandBuf);
+		sprintf_s(commandBuf, "pipboyRadio on");
+		Script::RunScriptLine(commandBuf);
+		sprintf_s(commandBuf, "pipboyRadio tune %x", radio->refID);
+		Script::RunScriptLine(commandBuf);
+	}
+	else {
+		sprintf_s(commandBuf, "pipboyRadio off");
+		Script::RunScriptLine(commandBuf);
+	}
 }
 

@@ -44,7 +44,7 @@
 
 //todo effects, location name
 
-// Edits TESCaravanMoney, TESObjectMisc, TESObjectBOOK, ActorValueInfo, PlayerCharacter
+// Edits TESCaravanMoney, TESObjectMisc, TESObjectBOOK, ActorValueInfo, PlayerCharacter, bgs voice type, extraRadioData
 
 // Member functions: BSFile, ModInfo
 
@@ -141,7 +141,15 @@ const char *SKILL_BADGES [] = {
 const int NUM_GENERAL_STATISTICS = 43;
 
 bool (__cdecl *getPCMiscStat)(TESObjectREFR *ref, int id, int unk0, double *retVal) = 
-	(bool(__cdecl *)(TESObjectREFR *, int , int, double *))0x005A3310;
+(bool(__cdecl *)(TESObjectREFR *, int, int, double *))0x005A3310;
+
+bool(__cdecl *isHardcore)(TESObjectREFR *ref, void *arg0, void *arg1, double *retVal) =
+(bool(__cdecl *)(TESObjectREFR *, void *arg0, void *arg1, double *))0x005A5F90;
+
+bool(__cdecl *isDisabled)(TESObjectREFR *ref, void *arg0, void *arg1, double *retVal) =
+(bool(__cdecl *)(TESObjectREFR *, void *arg0, void *arg1, double *))0x0059CF50;
+
+static char tempBuffer[1024];
 
 DataManager::DataManager() :
 	m_hardcore(false), m_numStimpacks(0), 
@@ -149,6 +157,16 @@ DataManager::DataManager() :
 {
 	m_miscStatisticsValues.resize(NUM_GENERAL_STATISTICS, 0);
 }
+
+void DataManager::init()
+{
+	m_radioIds.load("RadioStations");
+	m_dehydrationEffIds.load("DehydrationEffects");
+	m_radiationEffIds.load("RadiationEffects");
+	m_starvationEffIds.load("StarvationEffects");
+	m_sleepEffIds.load("SleepDeprivationEffects");
+}
+
 
 std::string DataManager::getModifierExtra(float val)
 {
@@ -196,7 +214,8 @@ void DataManager::registerUpdates(Scheduler &scheduler)
 	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateNotes, 3000));
 	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateQuests, 1200));
 	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateMapMarkers, 5000));
-	m_updateIds.push_back(scheduler.addPeriodic(test, 5000));
+	m_updateIds.push_back(scheduler.addPeriodic(DataManager::updateRadio, 1000));
+	//m_updateIds.push_back(scheduler.addPeriodic(test, 5000));
 }
 
 void DataManager::deregisterUpdates(Scheduler &scheduler)
@@ -214,6 +233,13 @@ void DataManager::update()
 void DataManager::updateGameInfo(void *)
 {
 	DataManager &dm = DataManager::getInstance();
+	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	if (player == NULL)
+		return;
+	double isHardcoreResult = 0;
+	if (isHardcore(player, NULL, NULL, &isHardcoreResult)) {
+		dm.m_hardcore = isHardcoreResult != 0;
+	}
 	CommunicationManager::getInstance().sendPacket(new SetGameInfoPacket(0, dm.m_hardcore));
 }
 
@@ -280,6 +306,8 @@ void DataManager::updatePlayerInfo(void *)
 void DataManager::updateSpecial(void *)
 {
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	if (player == NULL)
+		return;
 	
 	// AV info
 	ActorValueInfo *strengthInfo = GetActorValueInfo(eActorVal_Strength);
@@ -385,6 +413,8 @@ void DataManager::updateSkills(void *)
 	const std::string iconPrefix = "textures\\";
 	DataManager &i = DataManager::getInstance();
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	if (player == NULL)
+		return;
 
 	i.m_skills.clear();
 	for (int av = eActorVal_SkillsStart; av <= eActorVal_SkillsEnd; av++) {
@@ -415,6 +445,8 @@ void DataManager::updatePerks(void *)
 	DataHandler *dataHandler = DataHandler::Get();
 	DataManager &dm = DataManager::getInstance();
 	const std::string iconPrefix = "textures\\";
+	if (player == NULL || dataHandler == NULL)
+		return;
 
 	dm.m_perks.clear();
 
@@ -426,9 +458,13 @@ void DataManager::updatePerks(void *)
 
 		const char *desc = perk->description.Get(perk, 'CSED');
 
-		if (rank > 0) {
+		if (rank > 0 && ((perk->unk38[1] & 1) == 0)) {
+			std::string icon = "";
+			if (perk->icon.ddsPath.m_dataLen > 0) {
+				icon = iconPrefix + perk->icon.ddsPath.CStr();
+			}
 			dm.m_perks.push_back(StatisticsInfoItem(perk->fullName.name.CStr(), 
-				iconPrefix + perk->icon.ddsPath.CStr(), "", desc));
+				icon, "", desc));
 		}
 	}
 
@@ -439,45 +475,118 @@ void DataManager::updateStats(void *)
 {
 	DataManager &dm = DataManager::getInstance();
 	GameSettingCollection *gs = GameSettingCollection::GetSingleton();
-	ConsoleManager	* consoleManager = ConsoleManager::GetSingleton();
-
 	Setting *setting;
 	char settingName[20];
-	UInt8	scriptBuf[sizeof(Script)];
-	Script	* script = (Script *)scriptBuf;
+
+	if (gs == NULL)
+		return;
 
 	dm.m_stats.clear();
-
-	dm.m_miscStatisticValuesMutex.lock();
 
 	for (int i = 0; i < NUM_GENERAL_STATISTICS; i++) {
 		sprintf(settingName, "sMiscStat%03d", i);
 		if (!gs->GetGameSetting(settingName, &setting))
 			continue;
 		double value = 0;
-		getPCMiscStat(NULL, i, 0, &value);
-		// double value = dm.m_miscStatisticsValues[i];
-		dm.m_stats.push_back(StatisticsInfoItem(setting->Get(), "", "", "",
-			std::to_string((int)value), ""));
+		if (getPCMiscStat(NULL, i, 0, &value)) {
+			dm.m_miscStatisticsValues[i] = (int)value;
+			dm.m_stats.push_back(StatisticsInfoItem(setting->Get(), "", "", "",
+				std::to_string((int)value), ""));
+		}
 	}
-	dm.m_miscStatisticValuesMutex.unlock();
-
-
 	
 	CommunicationManager::getInstance().sendPacket(new SetStatsItemsPacket(3, dm.m_stats));
+}
+
+void updateStatusEffect(const std::set<UInt32> &refs, ActiveEffect  *effect, std::vector<StatusEffect> &dataOut) {
+	std::string name = effect->item->name.CStr();
+	for (std::set<UInt32>::iterator it = refs.cbegin(); it != refs.cend(); ++it) {
+		SpellItem *spell = DYNAMIC_CAST(LookupFormByID(*it), TESForm, SpellItem);
+		if (spell == NULL || spell->magicItem.name.m_dataLen <= 0)
+			continue;
+		if (name == spell->magicItem.name.CStr()) {
+			dataOut.clear();
+			
+			for (tList<EffectItem>::Iterator itEff = effect->item->list.list.Begin(); !itEff.End(); ++itEff) {
+				std::string abbr = "";
+				std::string value = "";
+				int avOrOther = itEff->actorValueOrOther;
+				if (avOrOther > 0) {
+					ActorValueInfo *avInfo = GetActorValueInfo(avOrOther);
+					if (avInfo == NULL)
+						continue;
+					int magnitude = itEff->magnitude;
+					if (itEff->setting->effectFlags & 0x4) {
+						magnitude = -magnitude;
+					}
+					dataOut.push_back(StatusEffect(avInfo->abbrev.CStr(), magnitude));
+				}
+			}
+		}
+	}
 }
 
 void DataManager::updateEffects(void *)
 {
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	DataManager &dm = DataManager::getInstance();
+
+	if (player == NULL)
+		return;
+	dm.m_playerEffects.clear();
 
 	EffectNode *effectList = player->magicTarget.GetEffectList();
-	EffectNode::Iterator it = effectList->Begin();
-	ActiveEffect *effect = it.Get();
+	if (effectList == NULL)
+		return;	
+	//_MESSAGE("Effects %d:", effectList->Count());
+	for (EffectNode::Iterator it = effectList->Begin(); !it.End(); ++it) {
+		ActiveEffect *effect = it.Get();
+		UInt32 flags1 = effect->unk18;
+		UInt32 flags2 = effect->effectItem->setting->effectFlags;
+		if(effect == NULL || effect->item == NULL || effect->flags12 == 1 || 
+			(flags2 & 0x02) != 0x02 || (flags1 & 0x0e) != 0x00 ||
+			(effect->spellType == 4 && (flags1 & 0x80) == 0) || (flags2 & 0x60) == 0)
+			continue;
+		MagicItem *item = effect->item;
+		std::string name = item->name.CStr();
+		std::string effects = "";
+		//_MESSAGE("%30s: %d %08x %08x %08x %08x", name.c_str(), effect->spellType, effect->effectItem->setting->archtype, effect->unk44, flags1, flags2);
+		for (tList<EffectItem>::Iterator itEff = item->list.list.Begin(); !itEff.End(); ++itEff) {
+			int avOrOther = itEff->actorValueOrOther;
+			if (avOrOther > 0) {
+				ActorValueInfo *avInfo = GetActorValueInfo(avOrOther);
+				if (avInfo == NULL)
+					continue;
+				int magnitude = itEff->magnitude;
+				if (itEff->setting->effectFlags & 0x4) {
+					magnitude = -magnitude;
+				}
+				sprintf_s(tempBuffer, "%s %+d, ", avInfo->abbrev.CStr(), magnitude);
+				effects.append(tempBuffer);
+			}
+			else {
+				if ((itEff->setting->effectFlags & 0x2000) != 0) {
+					sprintf_s(tempBuffer, "%s, ", itEff->setting->fullName.name.CStr());
+					effects.append(tempBuffer);
+				}
+			}
+		}
+		if (effects.length() >= 2) {
+			// remove ", " from end
+			effects = effects.substr(0, effects.length() - 2);
+		}
+		//_MESSAGE("Effect %30s: %d %02x %02x %08x %08x %08x %08x %08x %08x %2.2f %2.2f %s", name.c_str(), effect->spellType, effect->flags10, effect->flags12, effect->unk14, effect->unk18, effect->unk30, effect->unk34, effect->unk38, effect->unk44, effect->magnitude, effect->duration, effects.c_str());
 
-	DataManager &i = DataManager::getInstance();
-	CommunicationManager::getInstance().sendPacket(new SetPlayerEffectsPacket(i.m_radEffects, 
-		i.m_h2oEffects, i.m_fodEffects, i.m_slpEffects, i.m_playerEffects));
+		dm.m_playerEffects.push_back(PlayerEffect(name, effects));
+
+		updateStatusEffect(dm.m_radiationEffIds.getList(), effect, dm.m_radEffects);
+		updateStatusEffect(dm.m_dehydrationEffIds.getList(), effect, dm.m_h2oEffects);
+		updateStatusEffect(dm.m_starvationEffIds.getList(), effect, dm.m_fodEffects);
+		updateStatusEffect(dm.m_sleepEffIds.getList(), effect, dm.m_slpEffects);
+	}
+
+	CommunicationManager::getInstance().sendPacket(new SetPlayerEffectsPacket(dm.m_radEffects, 
+		dm.m_h2oEffects, dm.m_fodEffects, dm.m_slpEffects, dm.m_playerEffects));
 }
 
 void DataManager::updateWorldInfo(void *)
@@ -503,11 +612,12 @@ void DataManager::updateWorldInfo(void *)
 	TESGlobal *day = (TESGlobal *)LookupFormByID(0x37);
 	TESGlobal *time = (TESGlobal *)LookupFormByID(0x38);
 
-	if (year == NULL || month == NULL || day == NULL || time == NULL)
+	if (year == NULL || month == NULL || day == NULL || time == NULL || player == NULL ||
+		dh == NULL)
 		return;
 
 	signed char hour = (signed char)((int)time->data);
-	signed char  minute = (signed char)((time->data - hour) * 60);
+	signed char minute = (signed char)((time->data - hour) * 60);
 
 	std::string locationName = "";
 	TESObjectCELL *currentCell = player->parentCell;
@@ -538,7 +648,6 @@ void DataManager::updateWorldInfo(void *)
 			scale = currentCell->worldSpace->worldMapScale;
 			offsetX = currentCell->worldSpace->worldMapCellX;
 			offsetY = currentCell->worldSpace->worldMapCellY;
-			
 		}
 	}
 
@@ -829,6 +938,9 @@ void DataManager::updateNotes(void *)
 	const std::string texturePrefix = "textures\\";
 	DataManager &dm = DataManager::getInstance();
 
+	if (player == NULL)
+		return;
+
 	for (std::vector<Note *>::iterator it = dm.m_notes.begin(); it != dm.m_notes.end();
 	++it) {
 		delete *it;
@@ -887,6 +999,9 @@ void DataManager::updateQuests(void *)
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
 	DataManager &dm = DataManager::getInstance();
 
+	if (player == NULL)
+		return;
+
 	std::map<TESQuest *, Quest *> quests;
 	std::list<TESQuest *> order;
 	
@@ -906,6 +1021,20 @@ void DataManager::updateQuests(void *)
 		QuestObjective objective(it->objectiveId, text, 0);
 		objective.setCompleted((it->status & BGSQuestObjective::eQObjStatus_completed) != 0);
 		objective.setDisplayed((it->status & BGSQuestObjective::eQObjStatus_displayed) != 0);
+		for (tList<BGSQuestObjective::Target *>::Iterator it2 = it->targets.Begin(); !it2.End(); 
+			++it2) {
+			if (**it2 <= (void*)0x10000 || (**it2)->target == NULL) continue;
+			TESObjectREFR *targetRef = (**it2)->target->target;
+			if (targetRef == NULL) {
+				continue;
+			}
+			QuestObjective::Target target;
+			target.id = targetRef->refID;
+			target.x = targetRef->posX;
+			target.y = targetRef->posY;
+			target.z = targetRef->posZ;
+			objective.addTarget(target);
+		}
 		quest->addObjective(objective);
 	}
 
@@ -976,6 +1105,93 @@ void DataManager::updateMapMarkers(void *)
 	CommunicationManager::getInstance().sendPacket(new SetMapMarkersPacket(dm.m_markers, false));
 }
 
+void memdump(const void *ptr, int size) {
+	const unsigned char *ptr2 = (const unsigned char *)ptr;
+	for (int i = 0; i < size; i += 8) {
+		_MESSAGE("%02x %02x %02x %02x %02x %02x %02x %02x", ptr2[0], ptr2[1], ptr2[2], ptr2[3], ptr2[4], ptr2[5], ptr2[6], ptr2[7]);
+		ptr2 += 8;
+	}
+}
+
+void DataManager::updateRadio(void *) {
+	struct currentRadio_s{
+		TESObjectREFR *ref;
+	};
+	DataManager &dm = DataManager::getInstance();
+	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	char *currentSong = (char *)0x11DD448;
+	struct currentRadio_s **currentRadio = (struct currentRadio_s **)0x11DD42C;
+
+	dm.m_radioStations.clear();
+	_MESSAGE("Radio stations %08x base %08x", (*currentRadio != NULL && (*currentRadio)->ref != NULL) ? (*currentRadio)->ref->refID : 0, 
+		(*currentRadio != NULL && (*currentRadio)->ref != NULL && (*currentRadio)->ref->baseForm != NULL) ? (*currentRadio)->ref->baseForm->refID : 0);
+	for (std::set<UInt32>::iterator it = dm.m_radioIds.getList().cbegin();
+		it != dm.m_radioIds.getList().cend(); ++it) {
+		TESObjectREFR *ref = DYNAMIC_CAST(LookupFormByID(*it), TESForm, TESObjectREFR);
+		if (ref == NULL) {
+			continue;
+		}
+		double disabled = 0;
+		if (!isDisabled(ref, NULL, NULL, &disabled)) {
+			disabled = 0;
+		}
+
+		BGSTalkingActivator *acti = DYNAMIC_CAST(ref->baseForm, TESForm, BGSTalkingActivator);
+		if (acti == NULL || !acti->isRadio() || acti->isNonPipboy() || disabled != 0) continue;
+		std::string name = acti->fullName.name.CStr();
+		ExtraRadioData *radioData = (ExtraRadioData *)ref->extraDataList.GetByType(kExtraData_RadioData);
+		bool active = true;
+		bool current = false;
+		if (radioData != NULL) {
+			switch (radioData->mode) {
+			case ExtraRadioData::kModeRadius:
+				{
+					float dx, dy, dz;
+					if (radioData->exteriorPosRef != NULL) {
+						dx = radioData->exteriorPosRef->posX - player->posX;
+						dy = radioData->exteriorPosRef->posY - player->posY;
+						dz = radioData->exteriorPosRef->posZ - player->posZ;
+					}
+					else {
+						dx = ref->posX - player->posX;
+						dy = ref->posY - player->posY;
+						dz = ref->posZ - player->posZ;
+					}
+					float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+					if (distance >= radioData->radius) {
+						active = false;
+					}
+				}
+				break;
+			case ExtraRadioData::kModeWorldspaceAndLinkedInteriors:
+				{
+
+				}
+				break;
+			case ExtraRadioData::kModeCurrentCellOnly:
+				{
+
+				}
+				break;
+			case ExtraRadioData::kModeLinkedInteriors:
+				{
+
+				}
+				break;
+			}
+		}
+
+		if (*currentRadio != NULL && (*currentRadio)->ref != NULL) {
+			current = (*currentRadio)->ref->refID == ref->refID;
+		}
+
+		dm.m_radioStations.push_back(Radio(ref->refID, name, active, current));
+		_MESSAGE("Radio %40s: id: %08x base: %08x active: %d current: %d song: %s", name.c_str(), 
+					ref->refID, ref->baseForm->refID, active, current, currentSong);
+	}
+	CommunicationManager::getInstance().sendPacket(new SetRadioPacket(dm.m_radioStations));
+}
+
 std::string DataManager::getSystemName()
 {
 	char nameBuffer[MAX_COMPUTERNAME_LENGTH + 1];
@@ -984,19 +1200,4 @@ std::string DataManager::getSystemName()
 		return "Pipboy 3000";
 	}
 	return std::string(nameBuffer);
-}
-
-void DataManager::setStat(int index, int value)
-{
-	if (index >= NUM_GENERAL_STATISTICS) {
-		return;
-	}
-	m_miscStatisticValuesMutex.lock();
-	m_miscStatisticsValues[index] = value;
-	m_miscStatisticValuesMutex.unlock();
-}
-
-void DataManager::setHardcore(bool hardcore)
-{
-	m_hardcore = hardcore;
 }

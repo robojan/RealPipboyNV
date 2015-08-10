@@ -9,6 +9,13 @@
 
 class QuestObjective {
 public:
+	struct Target {
+		uint32_t id;
+		float x;
+		float y;
+		float z;
+	};
+
 	QuestObjective(unsigned int objectID, const std::string &text, unsigned int flags);
 	~QuestObjective();
 
@@ -20,11 +27,14 @@ public:
 	void setCompleted(bool completed);
 	bool isDisplayed() const;
 	void setDisplayed(bool displayed);
+	void addTarget(const Target &target);
+	const std::list<Target> *getTargets() const;
 
 private:
 	std::string m_text;
 	unsigned int m_flags;
 	unsigned int m_objectiveID;
+	std::list<Target> m_targets;
 };
 
 class Quest

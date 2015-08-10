@@ -19,7 +19,7 @@ public:
 	void actionUnequipItem(UInt32 refID, bool noEquip, bool hideMessage);
 	void actionFastTravel(UInt32 refID);
 	void actionSetActiveQuest(UInt32 refID);
-
+	void actionTuneRadio(UInt32 refID);
 private:
 };
 

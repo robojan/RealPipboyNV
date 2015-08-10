@@ -24,6 +24,7 @@
 #define DOACTION_UNEQUIPITEM 5 // RefID, noEquip, hideMessage
 #define DOACTION_FASTTRAVEL 6 // RefID
 #define DOACTION_SETACTIVEQUEST 7 // RefID
+#define DOACTION_TUNERADIO 8 // RefID
 
 class DoActionPacket :
 	public DataPacket

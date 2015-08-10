@@ -13,6 +13,9 @@ class TestDataManager :
 public:
 	virtual ~TestDataManager();
 	static TestDataManager &getInstance();
+
+	virtual void init() override;
+
 	virtual void registerUpdates(Scheduler &scheduler) override;
 	virtual void deregisterUpdates(Scheduler &scheduler) override;
 

@@ -4,6 +4,9 @@
 #include "RealPipboy/DataTypes/StatisticsInfoItem.h"
 #include "RealPipboy/DataTypes/StatusEffect.h"
 #include "RealPipboy/DataTypes/PlayerEffect.h"
+#include "RealPipboy/DataTypes/Radio.h"
+
+#include "SettingsFormList.h"
 
 #include <string>
 #include <vector>
@@ -20,15 +23,15 @@ class DataManager :
 public:
 	virtual ~DataManager();
 	static DataManager &getInstance();
+
+	virtual void init() override;
+
 	virtual void registerUpdates(Scheduler &scheduler) override;
 	virtual void deregisterUpdates(Scheduler &scheduler) override;
 
 	virtual void update() override;
 
 	virtual std::string getSystemName() override;
-
-	void setStat(int index, int value);
-	void setHardcore(bool hardcore);
 
 private:
 	DataManager();
@@ -47,14 +50,18 @@ private:
 	static void updateNotes(void *);
 	static void updateQuests(void *);
 	static void updateMapMarkers(void *);
+	static void updateRadio(void *);
 
 	static DataManager m_ourInstance;
 	std::vector<int> m_updateIds;
-
-	std::mutex m_miscStatisticValuesMutex;
-	std::vector<int> m_miscStatisticsValues;
+	SettingsFormList m_radioIds;
+	SettingsFormList m_radiationEffIds;
+	SettingsFormList m_dehydrationEffIds;
+	SettingsFormList m_starvationEffIds;
+	SettingsFormList m_sleepEffIds;
 
 public:
+	std::vector<int> m_miscStatisticsValues;
 	std::vector<StatisticsInfoItem> m_special;
 	std::vector<StatisticsInfoItem> m_skills;
 	std::vector<StatisticsInfoItem> m_perks;
@@ -68,6 +75,7 @@ public:
 	std::vector<Note *> m_notes;
 	std::vector<Quest *> m_quests;
 	std::vector<MapMarker *> m_markers;
+	std::vector<Radio> m_radioStations;
 
 	bool m_hardcore;
 
