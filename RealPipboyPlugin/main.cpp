@@ -11,6 +11,7 @@
 #include "FOResourceManager.h"
 #include "FileTransferHandler.h"
 #include "ActionHandler.h"
+#include "Config.h"
 
 #include <string>
 #include <process.h>
@@ -32,9 +33,12 @@ NVSEScriptInterface* g_script;
 #define ExtractArgsEx(...) g_script->ExtractArgsEx(__VA_ARGS__)
 #define ExtractFormatStringArgs(...) g_script->ExtractFormatStringArgs(__VA_ARGS__)
 
+void showMessage(bool error, const char *message) {
+	QueueUIMessage(message, error ? pain : happy, NULL, NULL, 5, false);
+}
 
 uintptr_t g_mainThreadHandle;
-RealPipboy gPipboy(&DataManager::getInstance());
+RealPipboy gPipboy(&DataManager::getInstance(), showMessage);
 bool gRunning = false;
 unsigned int __stdcall mainThread(void *){
 	_MESSAGE("Starting main thread");
@@ -48,6 +52,12 @@ unsigned int __stdcall mainThread(void *){
 
 	FileTransferHandler fileTransferHandler;
 	ActionHandler actionHandler;
+
+	std::string hostName = GetConfigOption("TCPServer", "host");
+	if (hostName.empty()) hostName = "0.0.0.0";
+	UInt32 port = 0;
+	if (!GetConfigOption_UInt32("TCPServer", "port", &port)) port = 28115;
+	gPipboy.setTCPSettings(hostName.c_str(), port);
 
 	_MESSAGE("Starting server");
 	gPipboy.makeConnectable(true);

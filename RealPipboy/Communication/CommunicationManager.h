@@ -17,6 +17,8 @@ class CommunicationManager
 public:
 	static CommunicationManager &getInstance();
 
+	void setTCPSettings(const char *hostname, int port);
+
 	void startListening();
 	void stopListening();
 

@@ -7,10 +7,13 @@
 
 #include <chrono>
 
-RealPipboy::RealPipboy(IDataManager *dataManager) :
+void(*g_showMessage)(bool error, const char *msg) = NULL;
+
+RealPipboy::RealPipboy(IDataManager *dataManager, void(*showMessage)(bool error, const char *msg)) :
 	m_connected(false), m_dataManager(dataManager), m_keepAliveID(-1), m_inGame(false),
 	m_transferringData(false), m_lastKeepAliveReceived(0)
 {
+	g_showMessage = showMessage;
 }
 
 RealPipboy::~RealPipboy()
@@ -23,6 +26,12 @@ void RealPipboy::init()
 	comm.registerPacketHandler(MessageType::HELLO, this);
 }
 
+void RealPipboy::setTCPSettings(const char *hostname, int port)
+{
+	CommunicationManager &comm = CommunicationManager::getInstance();
+	comm.setTCPSettings(hostname,port);
+}
+
 void RealPipboy::update(void)
 {
 	CommunicationManager &comm = CommunicationManager::getInstance();
@@ -31,11 +40,15 @@ void RealPipboy::update(void)
 		enableDataTransfer(m_inGame && m_connected);
 		if (m_connected) {
 			_MESSAGE("Client connected");
+			if (g_showMessage != NULL)
+				g_showMessage(false, "App connected");
 			m_keepAliveID = m_updateScheduler.addPeriodic(RealPipboy::sendKeepAlive, 3000, this);
 			m_updateScheduler.start();
 		}
 		else {
 			_MESSAGE("Client disconnected");
+			if (g_showMessage != NULL)
+				g_showMessage(false, "App disconnected");
 			if (m_keepAliveID > 0) {
 				m_updateScheduler.removeTask(m_keepAliveID);
 			}
@@ -43,7 +56,7 @@ void RealPipboy::update(void)
 	}
 	comm.update();
 	m_dataManager->update();
-	Sleep(16);
+	Sleep(8);
 }
 
 void RealPipboy::makeConnectable(bool connectable)

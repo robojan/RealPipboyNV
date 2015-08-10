@@ -24,6 +24,16 @@ CommunicationManager & CommunicationManager::getInstance()
 	return m_ourInstance;
 }
 
+void CommunicationManager::setTCPSettings(const char *hostname, int port)
+{
+	if (m_tcp != NULL) {
+		stopListening();
+		delete m_tcp;
+		m_tcp = NULL;
+	}
+	m_tcp = new TCPCommunication(port, hostname, -1, 1);
+}
+
 void CommunicationManager::startListening()
 {
 	ASSERT(m_tcp != NULL);

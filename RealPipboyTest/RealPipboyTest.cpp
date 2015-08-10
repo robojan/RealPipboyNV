@@ -14,8 +14,17 @@
 
 #include "RealPipboyPlugin/FOResourceStream.h"
 
+void showMessage(bool error, const char *msg) {
+	if (error) {
+		_ERROR("Error: %s", msg);
+	}
+	else {
+		_MESSAGE(msg);
+	}
+}
+
 IDebugLog gLog("RealPipboyTest.log");
-RealPipboy gPipboy(&TestDataManager::getInstance());
+RealPipboy gPipboy(&TestDataManager::getInstance(), showMessage);
 bool gRunning = true;
 
 

@@ -34,8 +34,32 @@ void TCPCommunication::startListening()
 		_WARNING("Already listing on a TCP socket");
 		return;
 	}
+	if (m_hostname == "0.0.0.0") {
+		_MESSAGE("Start listening for TCP connections on:");
+		IDebugLog::Indent();
+		char name[250];
+		PHOSTENT hostinfo;
+		if (gethostname(name, sizeof(name)) == 0)
+		{
+			if ((hostinfo = gethostbyname(name)) != NULL)
+			{
+				int nCount = 0;
+				while (hostinfo->h_addr_list[nCount])
+				{
+					char *ip = inet_ntoa(*(
+						struct in_addr *)hostinfo->h_addr_list[nCount]);
 
-	_MESSAGE("Start listening for TCP connections on: %s:%d", m_hostname.c_str(), m_port);
+					_MESSAGE("%s:%d", ip, m_port);
+					nCount++;
+				}
+			}
+		}
+		IDebugLog::Outdent();
+	}
+	else {
+		_MESSAGE("Start listening for TCP connections on: %s:%d", m_hostname.c_str(), m_port);
+	}
+
 
 	struct addrinfo hints;
 	struct addrinfo *result;

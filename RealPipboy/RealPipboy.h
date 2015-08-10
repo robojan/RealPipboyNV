@@ -9,10 +9,12 @@
 class RealPipboy : private IPacketHandler
 {
 public:
-	RealPipboy(IDataManager *data);
+	RealPipboy(IDataManager *data, void (*showMessage)(bool error, const char *msg));
 	~RealPipboy();
 
 	void init();
+
+	void setTCPSettings(const char *hostname, int port);
 
 	void update(void);
 	void makeConnectable(bool connectable);
