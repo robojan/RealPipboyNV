@@ -58,6 +58,9 @@ void ActionHandler::handlePacket(DataPacket *p)
 	case DOACTION_TUNERADIO:
 		actionTuneRadio(packet->getParam(0));
 		break;
+	case DOACTION_DROPITEM:
+		actionDropItem(packet->getParam(0), packet->getParam(1));
+		break;
 	default:
 		_ERROR("Unknown Do Action packet received. Action: %d", packet->getID());
 	}
@@ -174,5 +177,11 @@ void ActionHandler::actionTuneRadio(UInt32 refID)
 		sprintf_s(commandBuf, "pipboyRadio off");
 		Script::RunScriptLine(commandBuf);
 	}
+}
+
+void ActionHandler::actionDropItem(UInt32 refID, int count)
+{
+	sprintf_s(commandBuf, "player.drop %x %d", refID, count);
+	Script::RunScriptLine(commandBuf);
 }
 

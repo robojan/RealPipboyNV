@@ -9,7 +9,7 @@ public:
 	WeaponItem(uint32_t id, std::string name, int amount, int value,
 		float weight, std::string icon, std::string badge, bool equippable,
 		bool equipped, std::string effect, float dps, float dam, float cnd,  
-		int strReq);
+		int strReq, std::string ammo);
 	virtual ~WeaponItem();
 
 	virtual int8_t getItemType() override;
@@ -28,11 +28,15 @@ public:
 	void setCND(float cnd);
 	int getStrReq();
 	void setStrReq(int strReq);
+	const std::string &getAmmo();
+	void setAmmo(const std::string &ammo);
+
 
 protected:
 	float m_dps;
 	float m_dam;
 	float m_condition;
 	int m_strReq;
+	std::string m_ammo;
 };
 

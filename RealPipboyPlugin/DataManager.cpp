@@ -526,6 +526,36 @@ void updateStatusEffect(const std::set<UInt32> &refs, ActiveEffect  *effect, std
 	}
 }
 
+std::string getEffectsString(EffectItemList *list) {
+	std::string effects = "";
+	//_MESSAGE("%30s: %d %08x %08x %08x %08x", name.c_str(), effect->spellType, effect->effectItem->setting->archtype, effect->unk44, flags1, flags2);
+	for (tList<EffectItem>::Iterator itEff = list->list.Begin(); !itEff.End(); ++itEff) {
+		int avOrOther = itEff->actorValueOrOther;
+		if (avOrOther > 0) {
+			ActorValueInfo *avInfo = GetActorValueInfo(avOrOther);
+			if (avInfo == NULL)
+				continue;
+			int magnitude = itEff->magnitude;
+			if (itEff->setting->effectFlags & 0x4) {
+				magnitude = -magnitude;
+			}
+			sprintf_s(tempBuffer, "%s %+d, ", avInfo->abbrev.CStr(), magnitude);
+			effects.append(tempBuffer);
+		}
+		else {
+			if ((itEff->setting->effectFlags & 0x2000) != 0) {
+				sprintf_s(tempBuffer, "%s, ", itEff->setting->fullName.name.CStr());
+				effects.append(tempBuffer);
+			}
+		}
+	}
+	if (effects.length() >= 2) {
+		// remove ", " from end
+		effects = effects.substr(0, effects.length() - 2);
+	}
+	return effects;
+}
+
 void DataManager::updateEffects(void *)
 {
 	PlayerCharacter *player = PlayerCharacter::GetSingleton();
@@ -549,34 +579,8 @@ void DataManager::updateEffects(void *)
 			continue;
 		MagicItem *item = effect->item;
 		std::string name = item->name.CStr();
-		std::string effects = "";
-		//_MESSAGE("%30s: %d %08x %08x %08x %08x", name.c_str(), effect->spellType, effect->effectItem->setting->archtype, effect->unk44, flags1, flags2);
-		for (tList<EffectItem>::Iterator itEff = item->list.list.Begin(); !itEff.End(); ++itEff) {
-			int avOrOther = itEff->actorValueOrOther;
-			if (avOrOther > 0) {
-				ActorValueInfo *avInfo = GetActorValueInfo(avOrOther);
-				if (avInfo == NULL)
-					continue;
-				int magnitude = itEff->magnitude;
-				if (itEff->setting->effectFlags & 0x4) {
-					magnitude = -magnitude;
-				}
-				sprintf_s(tempBuffer, "%s %+d, ", avInfo->abbrev.CStr(), magnitude);
-				effects.append(tempBuffer);
-			}
-			else {
-				if ((itEff->setting->effectFlags & 0x2000) != 0) {
-					sprintf_s(tempBuffer, "%s, ", itEff->setting->fullName.name.CStr());
-					effects.append(tempBuffer);
-				}
-			}
-		}
-		if (effects.length() >= 2) {
-			// remove ", " from end
-			effects = effects.substr(0, effects.length() - 2);
-		}
 		//_MESSAGE("Effect %30s: %d %02x %02x %08x %08x %08x %08x %08x %08x %2.2f %2.2f %s", name.c_str(), effect->spellType, effect->flags10, effect->flags12, effect->unk14, effect->unk18, effect->unk30, effect->unk34, effect->unk38, effect->unk44, effect->magnitude, effect->duration, effects.c_str());
-
+		std::string effects = getEffectsString(&item->list);
 		dm.m_playerEffects.push_back(PlayerEffect(name, effects));
 
 		updateStatusEffect(dm.m_radiationEffIds.getList(), effect, dm.m_radEffects);
@@ -659,6 +663,23 @@ void DataManager::updateWorldInfo(void *)
 
 }
 
+std::string createAmmoString(TESAmmo *ammo, int currentClip) {
+	PlayerCharacter *player = PlayerCharacter::GetSingleton();
+	if (ammo == NULL || player == NULL)
+		return "--";
+	std::string result = ammo->shortName.CStr();
+	SInt32 numRounds = 0;
+	GetItemByRefID(player, ammo->refID, &numRounds);
+	result += "(" + std::to_string(currentClip) + "/" + 
+		std::to_string(numRounds - currentClip) + ")";
+	return result;
+}
+
+std::string createAmmoString(BGSListForm *list, int currentClip) {
+	TESAmmo *ammo = DYNAMIC_CAST(list->GetNthForm(0), TESForm, TESAmmo);
+	return createAmmoString(ammo, currentClip);
+}
+
 void DataManager::updateInventory(void *)
 {
 	const std::string texturePrefix = "textures\\";
@@ -726,11 +747,25 @@ void DataManager::updateInventory(void *)
 				value = (int)(value * powf(cnd, 1.5));
 				dam *= cnd;
 			}
+			std::string ammo = "--";
+			if (weapon->ammo.ammo != NULL) {
+				switch (weapon->ammo.ammo->typeID) {
+				case kFormType_Ammo:
+					// simple
+					ammo = createAmmoString(DYNAMIC_CAST(weapon->ammo.ammo, TESForm, TESAmmo),
+						weapon->clipRounds.clipRounds);
+					break;
+				case kFormType_ListForm:
+					ammo = createAmmoString(DYNAMIC_CAST(weapon->ammo.ammo, TESForm, BGSListForm),
+						weapon->clipRounds.clipRounds);
+					break;
+				}
+			}
 			dm.m_inventory.push_back(new WeaponItem(weapon->refID, weapon->fullName.name.CStr(),
 				count, value, weapon->weight.weight, 
 				icon, "", true, worn, "", 
 				floor(dam*weapon->animShotsPerSec + 0.5f), floorf(dam + 0.5f), 
-				cnd, weapon->strRequired));
+				cnd, weapon->strRequired, ammo));
 			break;
 		}
 		case kFormType_Armor:
@@ -746,10 +781,21 @@ void DataManager::updateInventory(void *)
 			TESIcon *iconPtr = &armor->bipedModel.icon[0];
 			if (iconPtr->ddsPath.CStr() != NULL)
 				icon = texturePrefix + iconPtr->ddsPath.CStr();
-
+			std::string armorType = "";
+			if((armor->bipedModel.bipedFlags & 0x88) == 0x00) {
+				armorType = "Light";
+			} else if((armor->bipedModel.bipedFlags & 0x88) == 0x08) {
+				armorType = "Medium";
+			} else if ((armor->bipedModel.bipedFlags & 0x88) == 0x00) {
+				armorType = "Heavy";
+			}
+			std::string effects = "";
+			if (armor->enchantable.enchantItem != NULL) {
+				effects = getEffectsString(&armor->enchantable.enchantItem->magicItem.list);
+			}
 			dm.m_inventory.push_back(new ApparelItem(armor->refID, armor->fullName.name.CStr(),
 				count, value, armor->weight.weight, icon, "",
-				true, worn, "", armor->damageThreshold, 0, cnd));
+				true, worn, effects, armor->damageThreshold, 0, cnd, armorType));
 			break;
 		}
 		case kFormType_AlchemyItem:
@@ -758,8 +804,9 @@ void DataManager::updateInventory(void *)
 			std::string icon = "";
 			if (alchemy->icon.ddsPath.CStr() != NULL)
 				icon = texturePrefix + alchemy->icon.ddsPath.CStr();
+			std::string effects = getEffectsString(&alchemy->effects);
 			dm.m_inventory.push_back(new AidItem(alchemy->refID, alchemy->fullName.name.CStr(), count,
-				alchemy->value, 0, icon, "", false, worn, ""));
+				alchemy->value, 0, icon, "", false, worn, effects));
 			break;
 		}
 		case kFormType_ItemMod:
@@ -1123,8 +1170,10 @@ void DataManager::updateRadio(void *) {
 	struct currentRadio_s **currentRadio = (struct currentRadio_s **)0x11DD42C;
 
 	dm.m_radioStations.clear();
-	_MESSAGE("Radio stations %08x base %08x", (*currentRadio != NULL && (*currentRadio)->ref != NULL) ? (*currentRadio)->ref->refID : 0, 
-		(*currentRadio != NULL && (*currentRadio)->ref != NULL && (*currentRadio)->ref->baseForm != NULL) ? (*currentRadio)->ref->baseForm->refID : 0);
+	//_MESSAGE("Radio stations %08x base %08x", 
+	//		(*currentRadio != NULL && (*currentRadio)->ref != NULL) ? (*currentRadio)->ref->refID : 0, 
+	//	(*currentRadio != NULL && (*currentRadio)->ref != NULL && 
+	//		(*currentRadio)->ref->baseForm != NULL) ? (*currentRadio)->ref->baseForm->refID : 0);
 	for (std::set<UInt32>::iterator it = dm.m_radioIds.getList().cbegin();
 		it != dm.m_radioIds.getList().cend(); ++it) {
 		TESObjectREFR *ref = DYNAMIC_CAST(LookupFormByID(*it), TESForm, TESObjectREFR);
@@ -1186,8 +1235,8 @@ void DataManager::updateRadio(void *) {
 		}
 
 		dm.m_radioStations.push_back(Radio(ref->refID, name, active, current));
-		_MESSAGE("Radio %40s: id: %08x base: %08x active: %d current: %d song: %s", name.c_str(), 
-					ref->refID, ref->baseForm->refID, active, current, currentSong);
+		//_MESSAGE("Radio %40s: id: %08x base: %08x active: %d current: %d song: %s", name.c_str(), 
+		//			ref->refID, ref->baseForm->refID, active, current, currentSong);
 	}
 	CommunicationManager::getInstance().sendPacket(new SetRadioPacket(dm.m_radioStations));
 }

@@ -20,6 +20,7 @@ public:
 	void actionFastTravel(UInt32 refID);
 	void actionSetActiveQuest(UInt32 refID);
 	void actionTuneRadio(UInt32 refID);
+	void actionDropItem(UInt32 refID, int count);
 private:
 };
 

@@ -25,6 +25,7 @@
 #define DOACTION_FASTTRAVEL 6 // RefID
 #define DOACTION_SETACTIVEQUEST 7 // RefID
 #define DOACTION_TUNERADIO 8 // RefID
+#define DOACTION_DROPITEM 9 // RefID, count
 
 class DoActionPacket :
 	public DataPacket
