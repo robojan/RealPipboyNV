@@ -144,6 +144,7 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>zdll.lib;libpng16.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>zlib1.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
@@ -173,6 +174,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalDependencies>zdll.lib;libpng16.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>zlib1.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
@@ -200,6 +202,7 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>zdll.lib;libpng16.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>zlib1.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>

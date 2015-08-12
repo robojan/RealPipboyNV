@@ -2447,6 +2447,23 @@ public:
 STATIC_ASSERT(sizeof(TESObjectMISC) == 0x0A8);
 
 
+class TESCaravanCard : public TESBoundObject {
+public:
+	TESCaravanCard();
+	~TESCaravanCard();
+
+	TESFullName					fullName;		// 030
+	TESModelTextureSwap			model;			// 03C
+	TESIcon						icon;			// 05C
+	void*						unk68;			// 068
+	TESScriptableForm			script;			// 06C
+	TESValueForm				value;			// 078
+	void *						unk80[(0x8c - 0x80) / 4]; // 080
+	void *						unk8C[(0x9c - 0x8c) / 4]; // 08C
+	TESIcon						highResCardFront; //09C
+	TESIcon						highResCardBack; //0A8
+};
+
 // TESCaravanMoney ??
 class TESCaravanMoney : public TESBoundObject {
 public:

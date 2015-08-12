@@ -44,7 +44,8 @@
 
 //todo effects, location name
 
-// Edits TESCaravanMoney, TESObjectMisc, TESObjectBOOK, ActorValueInfo, PlayerCharacter, bgs voice type, extraRadioData
+// Edits TESCaravanMoney, TESObjectMisc, TESObjectBOOK, ActorValueInfo, PlayerCharacter, bgs voice type, extraRadioData,
+// TESCaravanCard
 
 // Member functions: BSFile, ModInfo
 
@@ -652,6 +653,9 @@ void DataManager::updateWorldInfo(void *)
 			scale = currentCell->worldSpace->worldMapScale;
 			offsetX = currentCell->worldSpace->worldMapCellX;
 			offsetY = currentCell->worldSpace->worldMapCellY;
+			//scale = worldspace->worldMapScale;
+			//offsetX = worldspace->worldMapCellX;
+			//offsetY = worldspace->worldMapCellY;
 		}
 	}
 
@@ -737,7 +741,7 @@ void DataManager::updateInventory(void *)
 		{
 			TESObjectWEAP *weapon = DYNAMIC_CAST(object, TESForm, TESObjectWEAP);
 			std::string icon = "";
-			if (weapon->icon.ddsPath.CStr() != NULL)
+			if (weapon->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + weapon->icon.ddsPath.CStr();
 			float cnd = 1;
 			int value = weapon->value.value;
@@ -779,7 +783,7 @@ void DataManager::updateInventory(void *)
 			}
 			std::string icon = "";
 			TESIcon *iconPtr = &armor->bipedModel.icon[0];
-			if (iconPtr->ddsPath.CStr() != NULL)
+			if (iconPtr->ddsPath.m_dataLen > 0)
 				icon = texturePrefix + iconPtr->ddsPath.CStr();
 			std::string armorType = "";
 			if((armor->bipedModel.bipedFlags & 0x88) == 0x00) {
@@ -802,7 +806,7 @@ void DataManager::updateInventory(void *)
 		{
 			AlchemyItem *alchemy = DYNAMIC_CAST(object, TESForm, AlchemyItem);
 			std::string icon = "";
-			if (alchemy->icon.ddsPath.CStr() != NULL)
+			if (alchemy->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + alchemy->icon.ddsPath.CStr();
 			std::string effects = getEffectsString(&alchemy->effects);
 			dm.m_inventory.push_back(new AidItem(alchemy->refID, alchemy->fullName.name.CStr(), count,
@@ -813,7 +817,7 @@ void DataManager::updateInventory(void *)
 		{
 			TESObjectIMOD *itemMod = DYNAMIC_CAST(object, TESForm, TESObjectIMOD);
 			std::string icon = "";
-			if (itemMod->icon.ddsPath.CStr() != NULL)
+			if (itemMod->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + itemMod->icon.ddsPath.CStr();
 
 			char *description = itemMod->description.Get(itemMod, 'CSED');
@@ -833,7 +837,7 @@ void DataManager::updateInventory(void *)
 			TESObjectMISC *misc = DYNAMIC_CAST(object, TESForm, TESObjectMISC);
 
 			std::string icon = "";
-			if (misc->icon.ddsPath.CStr() != NULL)
+			if (misc->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + misc->icon.ddsPath.CStr();
 
 			dm.m_inventory.push_back(new MiscItem(misc->refID, misc->fullName.name.CStr(),
@@ -846,7 +850,7 @@ void DataManager::updateInventory(void *)
 			TESAmmo *ammo = DYNAMIC_CAST(object, TESForm, TESAmmo);
 
 			std::string icon = "";
-			if (ammo->icon.ddsPath.CStr() != NULL)
+			if (ammo->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + ammo->icon.ddsPath.CStr();
 
 			std::string effects = "";
@@ -906,7 +910,7 @@ void DataManager::updateInventory(void *)
 			TESObjectBOOK *book = DYNAMIC_CAST(object, TESForm, TESObjectBOOK);
 
 			std::string icon = "";
-			if (book->icon.ddsPath.CStr() != NULL)
+			if (book->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + book->icon.ddsPath.CStr();
 
 			dm.m_inventory.push_back(new AidItem(book->refID, book->fullName.name.CStr(),
@@ -942,7 +946,7 @@ void DataManager::updateInventory(void *)
 		{
 			TESCasinoChips *cchip = DYNAMIC_CAST(object, TESForm, TESCasinoChips);
 			std::string icon = "";
-			if (cchip->icon.ddsPath.CStr() != NULL)
+			if (cchip->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + cchip->icon.ddsPath.CStr();
 
 			dm.m_inventory.push_back(new MiscItem(cchip->refID, cchip->fullName.name.CStr(),
@@ -954,18 +958,25 @@ void DataManager::updateInventory(void *)
 			TESCaravanMoney *cmon = DYNAMIC_CAST(object, TESForm, TESCaravanMoney);
 
 			std::string icon = "";
-			if (cmon->icon.ddsPath.CStr() != NULL)
+			if (cmon->icon.ddsPath.m_dataLen > 0)
 				icon = texturePrefix + cmon->icon.ddsPath.CStr();
 
 			dm.m_inventory.push_back(new MiscItem(cmon->refID, cmon->fullName.name.CStr(),
 				count, cmon->value.value, 0, icon, "", false, false,
 				""));
 			break;
-		}/*
+		}
 		case kFormType_CaravanCard:
 		{
+			TESCaravanCard *card = DYNAMIC_CAST(object, TESForm, TESCaravanCard);
+			std::string icon = "";
+			if (card->icon.ddsPath.m_dataLen > 0)
+				icon = texturePrefix + card->icon.ddsPath.CStr();
+
+			dm.m_inventory.push_back(new MiscItem(card->refID, card->fullName.name.CStr(),
+				count, card->value.value, 0, icon, "", false, false, ""));
 			break;
-		}*/
+		}
 		default:
 			_MESSAGE("Unknown item type found in inventory %s(%d): %s(%d)", 
 				GetObjectClassName((*it)->type), (*it)->type->GetTypeID(), 
