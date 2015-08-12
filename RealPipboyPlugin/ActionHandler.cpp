@@ -162,19 +162,13 @@ void ActionHandler::actionSetActiveQuest(UInt32 refID)
 
 void ActionHandler::actionTuneRadio(UInt32 refID)
 {
+	sprintf_s(commandBuf, "pipboyRadio off");
+	Script::RunScriptLine(commandBuf);
 	if (refID != 0) {
 		TESObjectREFR *radio = DYNAMIC_CAST(LookupFormByID(refID), TESForm, TESObjectREFR);
 		if (radio == NULL)
 			return;
-		sprintf_s(commandBuf, "pipboyRadio off");
-		Script::RunScriptLine(commandBuf);
-		sprintf_s(commandBuf, "pipboyRadio on");
-		Script::RunScriptLine(commandBuf);
-		sprintf_s(commandBuf, "pipboyRadio tune %x", radio->refID);
-		Script::RunScriptLine(commandBuf);
-	}
-	else {
-		sprintf_s(commandBuf, "pipboyRadio off");
+		sprintf_s(commandBuf, "pipboyRadio on %x", radio->refID);
 		Script::RunScriptLine(commandBuf);
 	}
 }
